@@ -1,0 +1,68 @@
+name:           lexml-parser
+version:        0.1
+cabal-version:  >= 1.2
+
+executable linkertool
+  hs-source-dirs:  src/main/haskell
+  main-is:         LinkerTool.hs
+  other-modules:   LexML.Linker.Lexer
+  build-depends:   base >= 4,
+                   syb, 
+                   network >= 2.2.1.5,
+                   time >= 1.1.4,
+                   hslogger >= 1.0.7,
+                   tagsoup >= 0.6,
+                   parsec >= 3.0.1,
+                   mtl >= 1.1.0.2,
+                   cmdargs >= 0.1,
+                   nano-md5,
+                   rts >= 0.1,
+                   utf8-string,
+                   bytestring,
+                   containers,
+                   array
+
+executable simplelinker
+  hs-source-dirs:  src/main/haskell
+  main-is:         SimpleLinker.hs
+  other-modules:   LexML.Linker.Lexer
+  build-depends:   base >= 4,
+                   syb, 
+                   network >= 2.2.1.5,
+                   time >= 1.1.4,
+                   hslogger >= 1.0.7,
+                   tagsoup >= 0.6,
+                   parsec >= 3.0.1,
+                   mtl >= 1.1.0.2,
+                   cmdargs >= 0.1,
+                   nano-md5,
+                   rts >= 0.1,
+                   utf8-string,
+                   bytestring,
+                   containers,
+                   array
+
+executable LinkerServer
+  hs-source-dirs:  src/main/haskell
+  main-is:         LinkerServer.hs
+  other-modules:   LexML.Linker.Lexer
+  ghc-options: -O3 -threaded -feager-blackholing -with-rtsopts=-N  -rtsopts
+  build-depends:   base >= 4,
+                   syb, 
+                   network >= 2.2.1.5,
+                   time >= 1.1.4,
+                   hslogger >= 1.0.7,
+                   tagsoup >= 0.6,
+                   parsec >= 3.0.1,
+                   mtl >= 1.1.0.2,
+                   cmdargs >= 0.1,
+                   nano-md5,
+                   rts >= 0.1,
+                   utf8-string,
+                   bytestring,
+                   containers,
+                   array,
+                   filepath >= 1.1.0.4,
+                   directory >= 1.0.1.1,
+                   binary >= 0.5.0.2,
+                   unix >= 2.4.0.2
