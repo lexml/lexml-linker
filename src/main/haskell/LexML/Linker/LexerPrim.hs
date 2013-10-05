@@ -9,23 +9,34 @@ import Data.Char
 import Data.Typeable
 import Control.Monad.Error
 import qualified Data.Set as S
+import Data.Word (Word8)
+import Codec.Binary.UTF8.String (encode)
 
 data LexerState = 
   LexerState {
     lsPrevPos :: Maybe TokenPos,
     lsCurrentPos :: Int,
     lsStream :: [(Int,String)],
+    lsPrevCharBytes :: [Word8],
     lsPrevChars :: [Char]
   } deriving (Show)
 
 type AlexInput = LexerState
 
-alexGetChar :: AlexInput -> Maybe (Char,AlexInput)
-alexGetChar ls =
-  case lsStream ls of
-    ((_,"") : rest) -> alexGetChar (ls { lsCurrentPos = 0, lsStream = rest })
-    ((p,c:cs) : rest) -> Just (c, ls { lsCurrentPos = lsCurrentPos ls + 1, lsPrevPos = Just $ maybe (p,lsCurrentPos ls) id (lsPrevPos ls), lsPrevChars = c : lsPrevChars ls, lsStream = (p,cs) : rest})
-    [] -> Nothing
+alexGetByte :: AlexInput -> Maybe (Word8,AlexInput)
+alexGetByte ls =
+  case lsPrevCharBytes ls of
+    [] -> case lsStream ls of
+               ((_,"") : rest) -> alexGetByte (ls { lsCurrentPos = 0, lsStream = rest })
+               ((p,c:cs) : rest) -> 
+                  let (b:bs) = encode [c] in
+                    Just (b, ls { lsCurrentPos = lsCurrentPos ls + 1, 
+                                  lsPrevPos = Just $ maybe (p,lsCurrentPos ls) id (lsPrevPos ls), 
+                                  lsPrevChars = c : lsPrevChars ls, 
+                                  lsPrevCharBytes = bs,
+                                  lsStream = (p,cs) : rest})
+               [] -> Nothing
+    (b:bs) -> Just (b,ls { lsPrevCharBytes = bs})
       
 alexInputPrevChar :: AlexInput -> Char
 alexInputPrevChar = head . lsPrevChars
@@ -34,6 +45,7 @@ makeLexStream tags =
     LexerState {
       lsCurrentPos = 0,
       lsPrevChars = [],
+      lsPrevCharBytes = [],
       lsPrevPos = Nothing,
       lsStream = [(p,text) | (p, TagText text) <- zip [0 ..] tags ]
     }

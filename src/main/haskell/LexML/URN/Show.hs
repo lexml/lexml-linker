@@ -1,5 +1,7 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE RelaxedPolyRec #-}
+{-# LANGUAGE FlexibleInstances #-}
+
 module LexML.URN.Show where
 
 import LexML.URN.Types

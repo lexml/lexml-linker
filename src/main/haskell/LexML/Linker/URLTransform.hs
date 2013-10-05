@@ -28,5 +28,5 @@ rewriteAnchors baseString = map rewriteAnchor
       | otherwise = a
     absolutize ref 
       | isRelativeReference ref = 
-            show $ fromJust $ (fromJust $ parseRelativeReference ref) `relativeTo` base
+            show $ (fromJust $ parseRelativeReference ref) `relativeTo` base
       | otherwise = ref

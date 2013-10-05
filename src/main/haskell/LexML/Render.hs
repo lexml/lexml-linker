@@ -34,8 +34,8 @@ ifProtected prot unprot = do
   v <- get
   return $  if v > 0 then prot else unprot
 
-escMap = IM.fromList [(b, "&"++a++";") | (a,b) <- htmlEntities]
-escape = concatMap (\x -> IM.findWithDefault [x] (ord x) escMap)
+--escMap = IM.fromList [(b, "&"++a++";") | (a,b) <- htmlEntities]
+escape = escapeXML --concatMap (\x -> IM.findWithDefault [x] (ord x) escMap)
 
 render :: [Tag String] -> String
 render = execWriter . flip evalStateT initialState . tags
