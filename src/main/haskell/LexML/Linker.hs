@@ -123,7 +123,7 @@ linker lo source = do
         case loTokenLimit lo of 
           Nothing -> (tokens',False)
           Just limit -> 
-	    let (x,y) = splitAt limit tokens' in (x,not $ null y)
+            let (x,y) = splitAt limit tokens' in (x,not $ null y)
   linkerNotice $ "linker: initial token length = " ++ show initialTokenLength ++ ", final token length = " ++ show (length tokens)
   if loDebugTokens lo then linkerLog $ concat $ ["    " ++ show t ++ "\n" | t <- tokens ] else return ()
   let resolverURL = case loResolverUrl lo of
@@ -144,7 +144,7 @@ linker lo source = do
             linkerLog $ concat ["    " ++ show t | t <- decoratedTags ]
             let transformedTags = case loBaseUrl lo of
                   Just base | loOutputType lo == OT_AHREF -> rewriteAnchors base decoratedTags
-	          _   -> decoratedTags
+                  _   -> decoratedTags
             linkerLog "transformedTags: "
             linkerLog $ concat [ "    " ++ show t ++ "\n" | t <- transformedTags ]
             return $ render transformedTags

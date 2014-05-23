@@ -45,7 +45,8 @@ main = do
             Left err -> IOUTF.putStrLn $ "Error: " ++ show err
             Right out -> do
               let content = resContent out
-              IOUTF.putStrLn content
+	      hSetEncoding stdout utf8
+	      putStrLn content
               hFlush stdout
           processLoop
   processLoop

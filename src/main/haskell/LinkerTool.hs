@@ -97,14 +97,20 @@ main = do
   when (calculaMD5 args) $ hPutStrLn stderr $ "MD5: " ++ md5sum inputBS
   let input = toString inputBS
   res <- runErrorT $ linker lo input
+  hSetEncoding stdout utf8 
   case res of
     Left err -> return ()
     Right out -> do
       let content = resContent out
       case saida args of
-        "" -> IOUTF.putStr content
-        "-" -> IOUTF.putStr content
-        fname -> IOUTF.writeFile fname content
+        --"" -> IOUTF.putStr content
+        "" -> putStr content
+        --"-" -> IOUTF.putStr content
+        "-" -> putStr content
+        --fname -> IOUTF.writeFile fname content
+        fname -> withFile fname WriteMode $ \h -> do
+	   hSetEncoding h utf8
+	   hPutStr h content
   
 
 
