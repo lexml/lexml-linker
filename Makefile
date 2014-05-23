@@ -1,2 +1,0 @@
-all:
-	cabal install
