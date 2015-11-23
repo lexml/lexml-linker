@@ -1,4 +1,6 @@
 {
+
+{-# LANGUAGE FlexibleContexts #-}
 module LexML.Linker.Lexer where
 
 import LexML.Linker.LexerPrim
@@ -7,7 +9,7 @@ import Text.HTML.TagSoup
 import qualified Data.Foldable as F
 import Data.Maybe
 import Data.Typeable
-import Control.Monad.Error
+import Control.Monad.Except
 
 }
 
@@ -34,8 +36,8 @@ $paragrafo = [\xa7]
 
 :- 
 
-<0> $white+			{ whitespace }
-<0> @Palavra			{ palavra }
+<0> $white+                     { whitespace }
+<0> @Palavra                    { palavra }
 <0> @Numero                     { numero }
 -- <0> [0-9]+ ("." [0-9]{3})*      { numero }
 <0> "1o"                        { ordinal }

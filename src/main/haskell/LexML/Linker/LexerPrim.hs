@@ -7,7 +7,7 @@ import qualified Data.Foldable as F
 import Data.Maybe
 import Data.Char
 import Data.Typeable
-import Control.Monad.Error
+import Control.Monad.Except
 import qualified Data.Set as S
 import Data.Word (Word8)
 import Codec.Binary.UTF8.String (encode)
@@ -152,7 +152,8 @@ instance Show LexError where
   show (LexError (Just m, Nothing)) = m
   show (LexError (Just m, Just p)) = m ++ " em " ++ show p
 
-instance Error LexError where
+{- instance Except LexError where
   noMsg = LexError (Nothing, Nothing)
   strMsg s = LexError (Just s,Nothing)
+  -}
 

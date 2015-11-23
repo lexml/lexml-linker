@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 module LexML.Render where
 
 import Text.HTML.TagSoup 

@@ -14,7 +14,7 @@ import Data.Char
 import LexML.URN.Types
 import Data.ByteString.UTF8 (toString, fromString)
 import Control.Monad
-import Control.Monad.Error
+import Control.Monad.Except
 import Control.Monad.Trans
 import LexML.Linker
 import qualified Data.Map as M
@@ -200,7 +200,7 @@ linkerHandler options txt = do
 --              loTokenLimit = opTokenLimit options,
               loResolverUrl = opURLResolver options
            }
-  res <- runErrorT (linker lo txt)
+  res <- runExceptT (linker lo txt)
   case res of
     Left err -> return (txt, M.singleton "erro" (show err))
     Right out -> 

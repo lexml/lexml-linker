@@ -12,8 +12,8 @@ import LexML.Linker(linker)
 import System.Log.Logger
 import System.Log.Handler.Syslog
 import System.Log.Handler.Simple
-import qualified System.IO.UTF8 as IOUTF
-import Control.Monad.Error
+-- import qualified System.IO.UTF8 as IOUTF
+import Control.Monad.Except
 import Prelude hiding (log)
 import LexML.Version
 import qualified Data.ByteString as BIO
@@ -96,7 +96,7 @@ main = do
               f -> return  $ fromString f              
   when (calculaMD5 args) $ hPutStrLn stderr $ "MD5: " ++ md5sum inputBS
   let input = toString inputBS
-  res <- runErrorT $ linker lo input
+  res <- runExceptT $ linker lo input
   hSetEncoding stdout utf8 
   case res of
     Left err -> return ()
@@ -109,8 +109,8 @@ main = do
         "-" -> putStr content
         --fname -> IOUTF.writeFile fname content
         fname -> withFile fname WriteMode $ \h -> do
-	   hSetEncoding h utf8
-	   hPutStr h content
+           hSetEncoding h utf8
+           hPutStr h content
   
 
 

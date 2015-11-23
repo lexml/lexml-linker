@@ -6,7 +6,7 @@ import Data.Char
 import Data.Maybe
 import Control.Monad
 import Control.Monad.Trans
-import Control.Monad.Error
+import Control.Monad.Except
 import Control.Monad.Identity
 import Control.Monad.State
 import Control.Monad.Writer
@@ -521,10 +521,10 @@ numeroOrdinal = ordinal <|> ordinal' <|> extenso
 
 abrevNumero :: LinkerParserMonad (Line,Column,Int)
 abrevNumero = try (choice $ map constanteI $ [ "n.", "n.o.", "no", "número", "nos" ]) <|> 
-		(do p <- constanteI "n" 
-		    optional ponto
-		    try (optional (indicadorOrdinal >> many indicadorOrdinal >> optional (constanteI "s") >> optional ponto))
-		    return p)
+                (do p <- constanteI "n" 
+                    optional ponto
+                    try (optional (indicadorOrdinal >> many indicadorOrdinal >> optional (constanteI "s") >> optional ponto))
+                    return p)
 
 numeroRomano :: LinkerParserMonad (Pos,Pos,Integer)
 numeroRomano = palavraI parseStringNumeroRomano >>= \ (p,n) -> return (p,p,n)
@@ -617,7 +617,7 @@ norma' = do
   log'' $ "norma': parsing norma"
   cs <- shouldParseConstituicaoSimples
   if cs then try constituicao1988 <|> try apelidos <|> normaExtenso
-	else try apelidos <|> normaExtenso
+        else try apelidos <|> normaExtenso
 --  try constituicao <|>  try normaExtenso -- not yet: <|>  leiApelido 
 
 constituicao1988 :: ParseCase2
@@ -994,12 +994,12 @@ parseMes :: LinkerParserMonad (Pos,Int)
 parseMes = casosSimples
   where
     casosSimples = do
-	log'' $ "parseMes: starting"
-	res <- parseLookup [("janeiro",1),("fevereiro",2),("março",3),("marco",3),
+        log'' $ "parseMes: starting"
+        res <- parseLookup [("janeiro",1),("fevereiro",2),("março",3),("marco",3),
                         ("abril",4),("maio",5),("junho",6),
                         ("julho",7),("agosto",8),("setembro",9),
                         ("outubro",10),("novembro",11),("dezembro",12)]
-	log'' $ "parseMes: returning res = " ++ show res
+        log'' $ "parseMes: returning res = " ++ show res
         return res
 
 

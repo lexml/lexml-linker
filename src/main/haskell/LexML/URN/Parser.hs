@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 module LexML.URN.Parser (parseURNLexML) where
 
 import LexML.URN.Types

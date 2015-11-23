@@ -5,7 +5,7 @@ import Data.Char
 import Data.Maybe
 import Control.Monad
 import Control.Monad.Trans
-import Control.Monad.Error
+import Control.Monad.Except
 import Control.Monad.Identity
 import Control.Monad.State
 import LexML.Linker.Decorator (DecorationMap, addURN)

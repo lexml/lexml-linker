@@ -4,8 +4,8 @@ module LexML.Linker.ParserBase where
 import Data.Char
 import Data.Maybe
 import Control.Monad
+import Control.Monad.Except
 import Control.Monad.Trans
-import Control.Monad.Error
 import Control.Monad.Identity
 import Control.Monad.State as CMS
 import Control.Monad.Writer
@@ -54,7 +54,7 @@ data LinkerParserState = LPS {
 
 --type LinkerParserMonad m = ParsecT [Token] () (StateT LinkerParserState m)
 
-type LinkerParserMonad = ParsecT [Token] () (ErrorT LinkerParseError (CMS.State LinkerParserState))
+type LinkerParserMonad = ParsecT [Token] () (ExceptT LinkerParseError (CMS.State LinkerParserState))
 
 type Pos = (Int,Int,Int)
 
@@ -64,9 +64,10 @@ type ParseCaseResult2 = [SingleParseCaseResult2]
 type ParseCase = LinkerParserMonad ParseCaseResult
 type ParseCase2 = LinkerParserMonad ParseCaseResult2
 
-instance Error LinkerParseError where
+{- instance Error LinkerParseError where
   noMsg = strMsg ""
   strMsg = LPE_Other
+-}
 
 getUrnContexto :: LinkerParserMonad (Maybe URNLexML)
 getUrnContexto = lift $ gets lpsContexto

@@ -12,8 +12,8 @@ import LexML.Linker(linker)
 import System.Log.Logger
 import System.Log.Handler.Syslog
 import System.Log.Handler.Simple
-import qualified System.IO.UTF8 as IOUTF
-import Control.Monad.Error
+-- import qualified System.IO.UTF8 as IOUTF
+import Control.Monad.Except
 import Prelude hiding (log)
 import LexML.Version
 import qualified Data.ByteString as BIO
@@ -30,8 +30,8 @@ main = do
           , loOutputType = OT_XLINK
           , loInputType = IT_TAGGED
           , loDebugRegras = False
-          , loDebugTokens = False	 
-	  , loConstituicaoSimples = True
+          , loDebugTokens = False        
+          , loConstituicaoSimples = True
         }
   hSetBuffering stdout LineBuffering
   hSetBuffering stdin LineBuffering
@@ -40,13 +40,13 @@ main = do
         unless eof $ do
           line <- BIO.getLine
           let l = toString line
-          res <- runErrorT $ linker lo l
+          res <- runExceptT $ linker lo l
           case res of
-            Left err -> IOUTF.putStrLn $ "Error: " ++ show err
+            Left err -> putStrLn $ "Error: " ++ show err
             Right out -> do
               let content = resContent out
-	      hSetEncoding stdout utf8
-	      putStrLn content
+              hSetEncoding stdout utf8
+              putStrLn content
               hFlush stdout
           processLoop
   processLoop

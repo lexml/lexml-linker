@@ -15,7 +15,7 @@ module LexML.Linker (
 
 import Text.HTML.TagSoup 
 import Control.Monad.Identity
-import Control.Monad.Error
+import Control.Monad.Except
 import LexML.Linker.LexerPrim (Token, LexError)
 import LexML.Render (render)
 import LexML.URN.Show
@@ -26,7 +26,7 @@ import LexML.Linker.ParserBase (LinkerComponent (..))
 import LexML.Linker.HtmlCleaner (cleanEmptyAnchors)
 import System.IO
 import Control.Monad
-import Control.Monad.Error
+import Control.Monad.Except
 import Data.Typeable
 import Data.Map ( (!) )
 import qualified Data.Map as M
@@ -42,14 +42,10 @@ linkerNotice msg = liftIO $ noticeM "LexML.Linker" msg
 
 data LinkerError = LE_Lexer LexError | LE_Parser LinkerParseError | LE_Other String deriving (Show,Typeable)
 
-instance Error LinkerError where
-  noMsg = LE_Other ""
-  strMsg = LE_Other
-
 myParseOptions = parseOptions { optTagPosition = False }
 
-mapError :: (Monad m, MonadError e1 (ErrorT e1 m), MonadError e2 (ErrorT e2 m)) => (e1 -> e2) -> ErrorT e1 m a -> ErrorT e2 m a
-mapError g = mapErrorT (\m -> do { res <- m ; return $ either (Left . g) Right res })
+mapError :: (Monad m, MonadError e1 (ExceptT e1 m), MonadError e2 (ExceptT e2 m)) => (e1 -> e2) -> ExceptT e1 m a -> ExceptT e2 m a
+mapError g = mapExceptT (\m -> do { res <- m ; return $ either (Left . g) Right res })
 
 type NomeContexto = String
 type SourceName = String
@@ -108,7 +104,7 @@ makeContext (RC_AutoridadeLocal autoridade mlocal) =
                Nothing
 makeContext (RC_URNLexML urn) = urn
 
-linker :: LinkerOptions -> String -> ErrorT LinkerError IO Result
+linker :: LinkerOptions -> String -> ExceptT LinkerError IO Result
 linker lo source = do
   let context = makeContext (loContext lo)
       tags = case loInputType lo of

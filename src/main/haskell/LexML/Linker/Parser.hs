@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 module LexML.Linker.Parser (
   LinkerParseError (..), parseReferencias2
 ) where
@@ -5,7 +7,7 @@ module LexML.Linker.Parser (
 import Data.Char
 import Control.Monad
 import Control.Monad.Trans
-import Control.Monad.Error
+import Control.Monad.Except
 import Control.Monad.Identity
 import Control.Monad.State
 import Control.Monad.Writer
@@ -45,7 +47,7 @@ iniState = LPS {
 parseReferencias2 :: [LinkerComponent] -> Maybe String -> URNLexML -> [Token] -> Bool -> (DecorationMap,[String])
 parseReferencias2 logComps murlresolver ctx l constituicaoSimples = (lpsDecorationMap res, reverse $ lpsLogMessages res)
   where
-    res = execState (fmap join $ runErrorT $ fmap (either (Left . LPE_ParseError) Right) $ runPT (many doParse) () "" l) iniState'''
+    res = execState (fmap join $ runExceptT $ fmap (either (Left . LPE_ParseError) Right) $ runPT (many doParse) () "" l) iniState'''
     iniState''' = iniState'' { lpsConstituicaoSimples = constituicaoSimples }
     iniState'' = foldr enable iniState' logComps
     iniState' = case murlresolver of
