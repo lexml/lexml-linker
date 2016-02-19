@@ -45,7 +45,7 @@ data ComponenteParseInfo = CPI {
       artigosSingular :: [String],
       numerosComp :: [NumeroParser],
       numerosEspecificos :: [NumeroParser],
-      subComponente :: Maybe (ComponenteParseInfo),
+      subComponente :: Maybe ComponenteParseInfo,
       preposicoes :: [String],
       selectComp :: [Integer] -> SelectF,
       selectDefault :: Maybe SelectF

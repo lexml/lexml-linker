@@ -18,7 +18,7 @@ data LexerState =
     lsCurrentPos :: Int,
     lsStream :: [(Int,String)],
     lsPrevCharBytes :: [Word8],
-    lsPrevChars :: [Char]
+    lsPrevChars :: String
   } deriving (Show)
 
 type AlexInput = LexerState
@@ -31,7 +31,7 @@ alexGetByte ls =
                ((p,c:cs) : rest) -> 
                   let (b:bs) = encode [c] in
                     Just (b, ls { lsCurrentPos = lsCurrentPos ls + 1, 
-                                  lsPrevPos = Just $ maybe (p,lsCurrentPos ls) id (lsPrevPos ls), 
+                                  lsPrevPos = Just $ fromMaybe (p,lsCurrentPos ls) id (lsPrevPos ls), 
                                   lsPrevChars = c : lsPrevChars ls, 
                                   lsPrevCharBytes = bs,
                                   lsStream = (p,cs) : rest})
@@ -133,7 +133,7 @@ simbolo :: Action
 simbolo = Just . Simbolo . head
 
 extractToken :: Int -> Action -> LexerState -> (Maybe Token,LexerState)
-extractToken len action ls = (fmap ( (,) pos ) $ action tokenText, ls')
+extractToken len action ls = ( (,) pos <$> action tokenText, ls')
   where
     pos = prevPos ls
     (tokenText,ls') = extract len ls
