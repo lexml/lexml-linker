@@ -593,40 +593,6 @@ constituicao = do
           Just (a,md) -> (Just a,md,Nothing)
   return [(inicio,maybe fim id mpos,U.selecionaConstituicao' ano mes mestado vig)]
 
-leiApelido ::  ParseCase2
-leiApelido = try leiApelido1 <|> leiApelido2
-
-leiApelido1 ::  ParseCase2
-leiApelido1 = do
-    inicio1 <- try (fmap Just (constanteI "antigo")) <|> return Nothing
-    inicio <- constantesI ["código", "codigo"] >>= \p -> return $ maybe p id inicio1
-    (fim1,ap) <- constantesI' apelidos
-    fim2 <- try (constanteI "anterior") <|> return fim1
-    option [(inicio,fim2,U.selecionaLeiApelido ["codigo",ap])] $ try $ do 
-        virgula
-        (_,f,urn):rl <- normaExtenso
-        return $ (inicio,f,urn):rl
-  where
-    apelidos = [
-        ("civil"),
-        ("penal")
-      ]
-
-leiApelido2 ::  ParseCase2
-leiApelido2 = try clt1 <|> clt2
-  where
-    clt1 = do
-      inicio <- constanteI "consolidação" <|> constanteI "consolidacao"
-      constanteI "das"
-      constanteI "leis"
-      constanteI "do"
-      fim <- constanteI "trabalho"
-      return [(inicio,fim,\_ -> U.apelidoCLT)]
-    clt2 = do
-      p <- constanteI "clt"
-      return [(p,p,\_ -> U.apelidoCLT)]
-
-
 apelidos :: ParseCase2
 apelidos = 
     choice $ map (\ (l,u) -> try $
@@ -682,8 +648,11 @@ parseQualificador = try qualificadores1 <|> qualificadores2
 parseQualificadores :: LinkerParserMonad [(Pos,Pos,QualificadorNorma)]
 parseQualificadores = parseQualificadores' True
 
+many1or0 obrig = if obrig then many1 else many
+
 parseQualificadores' :: Bool -> LinkerParserMonad [(Pos,Pos,QualificadorNorma)]
-parseQualificadores' obrig = (if obrig then many1 else many) (choice [try parseQualificador >>= return . Just, parseQualIgnore >> return Nothing ]) >>= return . catMaybes
+parseQualificadores' obrig = (many1or0 obrig $ choice [try parseQualificador >>= return . Just, parseQualIgnore >> return Nothing ]) >>= return . catMaybes
+-- parseQualificadores' obrig = (if obrig then many1 else many) (choice [try parseQualificador >>= return . Just, parseQualIgnore >> return Nothing ]) >>= return . catMaybes
 
 data ContextoQualificador = CQ { cqData :: Maybe (Int, Maybe (Int,Int)), cqMunicipio :: Maybe ([String],[String]), 
                                  cqEstado :: Maybe [String], cqUltimaPos :: Maybe Pos,
