@@ -31,7 +31,7 @@ alexGetByte ls =
                ((p,c:cs) : rest) -> 
                   let (b:bs) = encode [c] in
                     Just (b, ls { lsCurrentPos = lsCurrentPos ls + 1, 
-                                  lsPrevPos = Just $ fromMaybe (p,lsCurrentPos ls) id (lsPrevPos ls), 
+                                  lsPrevPos = Just $ maybe (p,lsCurrentPos ls) id (lsPrevPos ls), 
                                   lsPrevChars = c : lsPrevChars ls, 
                                   lsPrevCharBytes = bs,
                                   lsStream = (p,cs) : rest})

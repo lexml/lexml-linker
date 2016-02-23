@@ -19,7 +19,7 @@ import LexML.Version
 import qualified Data.ByteString as BIO
 import Data.ByteString.UTF8 (toString, fromString)
 import System.IO
-import Data.Digest.OpenSSL.MD5
+
 
 data Analise = Analise {
       frase :: String
@@ -94,7 +94,6 @@ main = do
                     "-" -> BIO.getContents
                     fname -> BIO.readFile fname
               f -> return  $ fromString f              
-  when (calculaMD5 args) $ hPutStrLn stderr $ "MD5: " ++ md5sum inputBS
   let input = toString inputBS
   res <- runExceptT $ linker lo input
   hSetEncoding stdout utf8 

@@ -19,7 +19,6 @@ import LexML.Version
 import qualified Data.ByteString as BIO
 import Data.ByteString.UTF8 (toString, fromString)
 import System.IO
-import Data.Digest.OpenSSL.MD5
 
 main = do
   updateGlobalLogger rootLoggerName (setLevel ERROR)
