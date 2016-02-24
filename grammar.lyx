@@ -85,7 +85,50 @@ apelidos & \equiv & \texttt{"regimento"\,"interno"\,"do"\,"senado"\,"federal"}\v
  &  & \texttt{"regulamento"\,"administrativo"\,"do"\,"senado"\,"federal"}\vert\\
  &  & \texttt{"ato"\,"das"\,"disposicoes"\,"constitucionais"\,"transitorias"}\vert\\
  &  & \texttt{"ato"\,"das"\,"disposições"\,"constitucionais"\,"transitorias"}\\
-normaExtenso & \equiv
+normaExtenso & \equiv & tipoNorma\cdot qualificadores'^{?}\\
+tipoNorma & \equiv & tnLei\vert tnResolucao\vert tnDecreto\vert tnEmendaConstitucional\vert\\
+ &  & tnMedidaProvisoria\vert tnCLT\vert tnCF\\
+tnLei & \equiv & \left(\mathtt{"lei"}\vert\mathtt{"leis"}\right)\cdot\\
+ &  & \left(\mathtt{"complementar"\vert"complementares"\vert"delegada"\vert"delegadas"}\right)^{?}\cdot\\
+ &  & \left(\mathtt{\begin{array}{c}
+"federal"\vert"federais"\vert\\
+"estadual"\vert"estaduais"\vert\\
+"municipal"\vert"municipais"\vert\\
+"distrital"\vert"distritais"
+\end{array}}\right)^{?}\\
+tnResolucao & \equiv & \mathtt{"resolução"\vert"resolucao"\vert"resoluções"\vert"resolucoes"}\\
+tnDecreto & \equiv & \left(\mathtt{"decreto"}\vert\mathtt{"decretos"}\right)\cdot\\
+ &  & \mathtt{"lei"}^{?}\cdot\\
+ &  & \left(\mathtt{\begin{array}{c}
+"federal"\vert"federais"\vert\\
+"estadual"\vert"estaduais"\vert\\
+"municipal"\vert"municipais"\vert\\
+"distrital"\vert"distritais"
+\end{array}}\right)^{?}\\
+tnEmendaConstituicional & \equiv & \mathtt{"emenda"\:"constitucional"}\\
+tnMediaProvisoria & \equiv & \left(\mathtt{"medida"}\vert\mathtt{"medidas"}\right)\cdot\\
+ &  & \left(\mathtt{"provisória"\vert"provisórias"\vert"provisoria"\vert"provisorias"}\right)\\
+tnCLT & \equiv & \mathtt{"clt"\vert\left("consolidacao"\vert"consolidação"\right)\mathtt{\,"das"\,"leis"\,"do"\,"trabalho"}}\\
+tnCF & \equiv & \mathtt{"cf"\:}\mathbf{barra}\:numero\left\langle (ano,\_,\_)\right\rangle \\
+qualificadores & \equiv & qualificador^{+}\vert\mathbf{hifen}\cdot\left(\mathbf{palavra}\left\{ \_.value\neq\mathtt{"e"}\right\} \right)^{*}\\
+qualificador & \equiv & \left(\begin{array}{c}
+\left(\left(\mathtt{","\vert";"}\right)^{?}\cdot\left(\begin{array}{c}
+qualNumero\vert\\
+qualData\vert\\
+qualData2\vert\\
+qualMunicipio\vert\\
+qualEstado
+\end{array}\right)\right)\vert\\
+qualAutoridade
+\end{array}\right)\\
+qualAutoridade & \equiv & qualAutoridadeHifen\vert qualAutoridadeExtenso\\
+qualAutoridadeHifen & \equiv & \mathbf{hifen}\cdot\mathtt{"cn"}\\
+\\
+\\
+\\
+\\
+\\
+\\
 \end{eqnarray*}
 
 \end_inset
@@ -99,21 +142,6 @@ Tipos de normas:
 
 \begin_layout Itemize
 tipoNormaLei
-\begin_inset Formula 
-\begin{eqnarray*}
-normaLei & \equiv & \left(\mathtt{"lei"}\vert\mathtt{"leis"}\right)\cdot\\
- &  & \left(\mathtt{"complementar"\vert"complementares"\vert"delegada"\vert"delegadas"}\right)^{?}\cdot\\
- &  & \left(\mathtt{\begin{array}{c}
-"federal"\vert"federais"\vert\\
-"estadual"\vert"estaduais"\vert\\
-"municipal"\vert"municipais"\vert\\
-"distrital"\vert"distritais"
-\end{array}}\right)^{?}
-\end{eqnarray*}
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -216,17 +244,6 @@ resolução
 
 \begin_deeper
 \begin_layout Standard
-\begin_inset Formula 
-\begin{eqnarray*}
-resolucao & \equiv & \mathtt{"resolução"\vert"resolucao"\vert"resoluções"\vert"resolucoes"}
-\end{eqnarray*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="2">
@@ -323,21 +340,6 @@ True
 \end_deeper
 \begin_layout Itemize
 tipoNormaDecreto
-\begin_inset Formula 
-\begin{eqnarray*}
-normaDecreto & \equiv & \left(\mathtt{"decreto"}\vert\mathtt{"decretos"}\right)\cdot\\
- &  & \mathtt{"lei"}^{?}\cdot\\
- &  & \left(\mathtt{\begin{array}{c}
-"federal"\vert"federais"\vert\\
-"estadual"\vert"estaduais"\vert\\
-"municipal"\vert"municipais"\vert\\
-"distrital"\vert"distritais"
-\end{array}}\right)^{?}
-\end{eqnarray*}
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -440,17 +442,6 @@ emenda constitucional
 
 \begin_deeper
 \begin_layout Standard
-\begin_inset Formula 
-\begin{eqnarray*}
-emendaConstituicional & \equiv & \mathtt{"emenda"\:"constitucional"}
-\end{eqnarray*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="2">
@@ -550,18 +541,6 @@ medida provisória
 \end_layout
 
 \begin_deeper
-\begin_layout Standard
-\begin_inset Formula 
-\begin{eqnarray*}
-mediaProvisoria & \equiv & \left(\mathtt{"medida"}\vert\mathtt{"medidas"}\right)\cdot\\
- &  & \left(\mathtt{"provisória"\vert"provisórias"\vert"provisoria"\vert"provisorias"}\right)\\
-\end{eqnarray*}
-
-\end_inset
-
-
-\end_layout
-
 \begin_layout Standard
 \align center
 \begin_inset Tabular
@@ -663,17 +642,6 @@ CLT
 
 \begin_deeper
 \begin_layout Standard
-\begin_inset Formula 
-\begin{eqnarray*}
-clt & \equiv & \mathtt{"clt"\vert\left("consolidacao"\vert"consolidação"\right)\mathtt{\,"das"\,"leis"\,"do"\,"trabalho"}}
-\end{eqnarray*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="2">
@@ -774,17 +742,6 @@ constituição com data
 \end_layout
 
 \begin_deeper
-\begin_layout Standard
-\begin_inset Formula 
-\begin{eqnarray*}
-cf & \equiv & \mathtt{"cf"\:}\mathbf{barra}\:numero\left\langle (ano,\_,\_)\right\rangle 
-\end{eqnarray*}
-
-\end_inset
-
-
-\end_layout
-
 \begin_layout Standard
 \align center
 \begin_inset Tabular
