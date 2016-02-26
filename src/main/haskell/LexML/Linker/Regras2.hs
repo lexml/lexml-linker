@@ -50,7 +50,7 @@ data ComponenteParseInfo = CPI {
       selectComp :: [Integer] -> SelectF,
       selectDefault :: Maybe SelectF
   }
-
+ 
 log ::  String -> LinkerParserMonad ()
 log = logRegras -- msg = return () -- lift $ tell $ msg ++ "\n"
 

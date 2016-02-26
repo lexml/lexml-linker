@@ -3,6 +3,9 @@
 \begin_document
 \begin_header
 \textclass article
+\begin_preamble
+\usepackage{pdflscape}
+\end_preamble
 \use_default_options true
 \maintain_unincluded_children false
 \language english
@@ -25,8 +28,9 @@
 \bibtex_command default
 \index_command default
 \paperfontsize default
+\spacing single
 \use_hyperref false
-\papersize default
+\papersize a4paper
 \use_geometry false
 \use_package amsmath 1
 \use_package amssymb 1
@@ -68,24 +72,47 @@
 
 \begin_body
 
+\begin_layout Section
+Gramática
+\end_layout
+
 \begin_layout Standard
 \begin_inset Formula 
 \begin{eqnarray*}
-norma & \equiv & \left(parseComponenteDireto_{artigo}\,\vert\,parseComponente_{artigo}\right)\,norma'\\
+norma & \equiv & \left(componenteDiretoComNome'\left[artigo\right]\,\vert\,componente\left[artigo\right]\right)\,norma'\\
 norma' & \equiv & \left(\begin{array}{c}
 \texttt{","}^{?}\cdot\\
 \left(\mathtt{"todos"}\vert\mathtt{"todas"}\vert\mathtt{"ambas"}\vert\mathtt{"ambos"}\right)^{?}\cdot\\
 \left(\mathtt{"de"}\vert\mathtt{"do"}\vert\mathtt{"da"}\right)
 \end{array}\right)^{?}\cdot\\
  &  & \left(constituicao1998\vert apelidos\vert normaExtenso\right)\\
-constituicao1998 & \equiv & \mathbf{nomeProprio\,}\texttt{"Constituição"}\cdot\texttt{"federal"}^{?}\:\vert\\
- &  & \texttt{"constituicao"}\,\texttt{"federal}\\
+constituicao1998 & \equiv & \left(\begin{array}{c}
+\mathtt{"CONSTITUIÇÃO"\vert"Constituição"\vert}\\
+\mathtt{"constituição"\vert"constituicao"}
+\end{array}\right)\cdot\texttt{"federal"}^{?}\\
 apelidos & \equiv & \texttt{"regimento"\,"interno"\,"do"\,"senado"\,"federal"}\vert\\
  &  & \texttt{"regimento"\,"interno"\,"do"\,"senado"}\vert\\
  &  & \texttt{"regulamento"\,"administrativo"\,"do"\,"senado"\,"federal"}\vert\\
  &  & \texttt{"ato"\,"das"\,"disposicoes"\,"constitucionais"\,"transitorias"}\vert\\
  &  & \texttt{"ato"\,"das"\,"disposições"\,"constitucionais"\,"transitorias"}\\
-normaExtenso & \equiv & tipoNorma\cdot qualificadores'^{?}\\
+normaExtenso & \equiv & tipoNorma\cdot qualificadores'^{?}
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{eqnarray*}
 tipoNorma & \equiv & tnLei\vert tnResolucao\vert tnDecreto\vert tnEmendaConstitucional\vert\\
  &  & tnMedidaProvisoria\vert tnCLT\vert tnCF\\
 tnLei & \equiv & \left(\mathtt{"lei"}\vert\mathtt{"leis"}\right)\cdot\\
@@ -108,27 +135,9 @@ tnDecreto & \equiv & \left(\mathtt{"decreto"}\vert\mathtt{"decretos"}\right)\cdo
 tnEmendaConstituicional & \equiv & \mathtt{"emenda"\:"constitucional"}\\
 tnMediaProvisoria & \equiv & \left(\mathtt{"medida"}\vert\mathtt{"medidas"}\right)\cdot\\
  &  & \left(\mathtt{"provisória"\vert"provisórias"\vert"provisoria"\vert"provisorias"}\right)\\
-tnCLT & \equiv & \mathtt{"clt"\vert\left("consolidacao"\vert"consolidação"\right)\mathtt{\,"das"\,"leis"\,"do"\,"trabalho"}}\\
-tnCF & \equiv & \mathtt{"cf"\:}\mathbf{barra}\:numero\left\langle (ano,\_,\_)\right\rangle \\
-qualificadores & \equiv & qualificador^{+}\vert\mathbf{hifen}\cdot\left(\mathbf{palavra}\left\{ \_.value\neq\mathtt{"e"}\right\} \right)^{*}\\
-qualificador & \equiv & \left(\begin{array}{c}
-\left(\left(\mathtt{","\vert";"}\right)^{?}\cdot\left(\begin{array}{c}
-qualNumero\vert\\
-qualData\vert\\
-qualData2\vert\\
-qualMunicipio\vert\\
-qualEstado
-\end{array}\right)\right)\vert\\
-qualAutoridade
-\end{array}\right)\\
-qualAutoridade & \equiv & qualAutoridadeHifen\vert qualAutoridadeExtenso\\
-qualAutoridadeHifen & \equiv & \mathbf{hifen}\cdot\mathtt{"cn"}\\
-\\
-\\
-\\
-\\
-\\
-\\
+tnCLT & \equiv & \mathtt{"clt"\vert\left("consolidacao"\vert"consolidação"\right)}\\
+ &  & \quad\mathtt{"das""leis"\,"do"\,"trabalho"}\\
+tnCF & \equiv & \mathtt{"cf"\:"/"}\:numero\left\langle (ano,\_,\_)\right\rangle 
 \end{eqnarray*}
 
 \end_inset
@@ -137,7 +146,715 @@ qualAutoridadeHifen & \equiv & \mathbf{hifen}\cdot\mathtt{"cn"}\\
 \end_layout
 
 \begin_layout Standard
-Tipos de normas:
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{eqnarray*}
+qualificadores & \equiv & qualificador^{+}\,\vert\,\mathtt{"-"}\cdot\left(\mathbf{palavra}\left\{ \_.value\neq\mathtt{"e"}\right\} \right)^{*}\\
+qualificador & \equiv & \left(\begin{array}{c}
+\left(\left(\mathtt{","\vert";"}\right)^{?}\cdot\left(\begin{array}{c}
+qualNumero\vert\\
+qualData\vert\\
+qualData2\vert\\
+qualMunicipio\vert\\
+qualEstado
+\end{array}\right)\right)\Bigg\vert\\
+qualAutoridade
+\end{array}\right)\\
+qualAutoridade & \equiv & qualAutoridadeHifen\vert qualAutoridadeExtenso\\
+qualAutoridadeHifen & \equiv & \mathtt{"-"}\cdot\mathtt{"cn"}\\
+qualAutoridadeExtenso & \equiv & \left(\begin{array}{c}
+\mathtt{"do"\:"conselho"\:"deliberativo"\:"do"}\\
+\mathtt{"fundo"\:"de"\:"amparo"\:"ao"\:"trabalhador"}
+\end{array}\right)\Bigg\vert\\
+ &  & \left(\mathtt{"do"\:"senado"\:"federal"}\right)\\
+qualEstado & \equiv & \left(\mathtt{"do"}^{?}\cdot\mathtt{"estado"}\cdot\left(\mathtt{"de"\vert"do"\vert"da"}\right)\right)^{?}\cdot\mathbf{estado}\\
+qualMunicipio & \equiv & "município"\cdot\left(\mathtt{"de"\vert"do"\vert"da"}\right)\cdot\mathbf{municipio}\\
+qualData & \equiv & \left(\mathtt{"ambos"\vert"ambas"\vert"todos"\vert"todas"}\right)^{?}\cdot\mathtt{"de"}^{?}\cdot\left(\mathbf{data}\vert\mathbf{ano4}\right)\\
+qualData2 & \equiv & \mathtt{"/"}\cdot\left(\mathbf{ano4}\vert\mathbf{ano2}\right)\\
+qualNumero & \equiv & \mathtt{"e"}^{?}\cdot abrevNumero^{?}\cdot numerosArabico\_nalfa\\
+numerosArabico\_nalfa & \equiv & numeroArabico\cdot\left(\mathtt{"-"}\cdot\left(\mathbf{numero}\vert numAlfabeto\right)\right)^{*}
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{eqnarray*}
+compDirComNome'\left[\alpha\right] & \equiv & \begin{cases}
+listaDe\left[\begin{array}{c}
+compDirPlural\left[\alpha\right]\,\vert\\
+compDirSingComNome\left[\alpha\right]\vert\\
+compDirComNome'\left[sub\left[\alpha\right]\right]
+\end{array}\right] & ,\alpha\mathrm{\:is\:optional}\wedge\\
+ & \quad\alpha\mathrm{\:has\,subComp}\\
+listaDe\left[\begin{array}{c}
+compDirPlural\left[\alpha\right]\,\vert\\
+compDirSingComNome\left[\alpha\right]
+\end{array}\right] & ,\,\mathrm{otherwise}
+\end{cases}\\
+compDirPlural\left[\alpha\right] & \equiv & \left(\mathbf{artigosPlural\left[\alpha\right]}\vert\mathtt{"nos"\vert"nas"}\right)^{?}\cdot\\
+ &  & \:\left(\mathtt{"termos"}\cdot\mathbf{prepArtigPlural}\left[\alpha\right]\right)^{?}\cdot\\
+ &  & \:nomes\left[\mathbf{nomesCompPlural}\left[\alpha\right]\right]\cdot\\
+ &  & compDirNomeOpt'\left[\alpha\right]\\
+compDirSingComNome\left[\alpha\right] & \equiv & compDirSingPrelim\left[\alpha\right]\cdot\\
+ &  & \;nomes\left[nomesCompSing\left[\alpha\right]\right]\cdot\\
+ &  & \:numerosEspecif\left[\alpha\right]\cdot\\
+ &  & \:compDirSingComNome_{1}\left[\alpha\right]^{?}\\
+compDirSingComNome_{1}\left[\alpha\right] & \equiv & \begin{cases}
+\left(\mathtt{","}\vert\mathtt{";"}\right)\cdot compDirComNome'\left[\alpha\right] & \mathrm{,\:if\,\alpha\,has\,subComp}\\
+\lambda & \mathrm{,\:otherwise}
+\end{cases}\\
+compDirSingPrelim\left[\alpha\right] & \equiv & \mathbf{artigosSingular}\left[\alpha\right]\vert\mathtt{"no"\vert"na"\vert}\\
+ &  & \;\left(\begin{array}{c}
+separator^{?}\cdot\\
+\mathtt{"nos"\cdot"termos"\cdot}\\
+\mathbf{prepArtSing}\left[\alpha\right]
+\end{array}\right)\,\Bigg\vert\,preposicao\left[\alpha\right]\\
+preposicao\left[\alpha\right] & \equiv & \left(separator\cdot\mathbf{preposicoes}\left[\alpha\right]\right)\,\big\vert\mathbf{\,preposicoes}\left[\alpha\right]^{?}\\
+compDirNomeOpt'\left[\alpha\right] & \equiv & \begin{cases}
+listaDe\left[\begin{array}{c}
+compDirPlural\left[\alpha\right]\,\vert\\
+compDirSingNomeOpt\left[\alpha\right]\vert\\
+compDirComNome'\left[sub\left[\alpha\right]\right]
+\end{array}\right] & ,\alpha\mathrm{\:is\:optional}\wedge\\
+ & \quad\alpha\mathrm{\:has\,subComp}\\
+listaDe\left[\begin{array}{c}
+compDirPlural\left[\alpha\right]\,\vert\\
+compDirSingNomeOpt\left[\alpha\right]
+\end{array}\right] & ,\,\mathrm{otherwise}
+\end{cases}\\
+compDirSingNomeOpt\left[\alpha\right] & \equiv & compDirSingPrelim\left[\alpha\right]\cdot\\
+ &  & \;nomes\left[nomesCompSing\left[\alpha\right]\right]^{?}\cdot\\
+ &  & \:numerosEspecif\left[\alpha\right]\cdot\\
+ &  & \:compDirSingComNome_{1}\left[\alpha\right]^{?}
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{eqnarray*}
+componente\left[\alpha\right] & \equiv & listaDe\left[compPlural_{2}\left[\alpha\right]\right]\\
+compPlural_{2}\left[\alpha\right] & \equiv & compPlural_{2,a}\left[\alpha\right]\cdot\\
+ &  & compPlural_{2,b}\left[\alpha\right]^{?}\\
+\\
+ &  & \;\\
+compPlural_{2,a}\left[\alpha\right] & \equiv & compPlural_{1}\left[\alpha\right]\vert compSing\left[\alpha\right]\\
+compPlural_{2,b}\left[\alpha\right] & \equiv & \sum_{\delta\in seps}\left(\left(\delta\cdot compPlural_{2,a}\left[\alpha\right]\right)^{+}\right)\cdot\delta^{?}\cdot\\
+ &  & compPlural_{2,c}\left[\alpha\right]^{?}\\
+compPlural_{2,c}\left[\alpha\right] & \equiv & \mathtt{"e"}\cdot compPlural_{2,a}\left[\alpha\right]\\
+compPlural_{1}\left[\alpha\right] & \equiv & \left(\mathbf{artigosPlural}\left[\alpha\right]\vert\mathtt{"nos"\vert"nas"}\right)^{?}\cdot\\
+ &  & \;\sum_{\eta\in\mathbf{nomesCompPlural}\left[\alpha\right]}compPlural_{1,a}\left[\alpha,\eta\right]\\
+compPlural_{1,a}\left[\alpha,\eta\right] & \equiv & \begin{cases}
+nome\left[\eta\right] & \mathrm{,\,if\,\eta\,is\,definite}\\
+nome\left[\eta\right]\cdot listaNumeros\left[\mathbf{numerosComp}\left[\alpha\right]\right] & \mathrm{,\,otherwise}
+\end{cases}\\
+compSing\left[\alpha\right] & \equiv & \begin{cases}
+\begin{array}{c}
+\left(componente\left[sub\left[\alpha\right]\right]\cdot compSing_{2}\left[\alpha\right]^{?}\right)\vert\\
+compSing_{2}\left[\alpha\right]
+\end{array} & \mathrm{,\,if\,\alpha\,has\,subComp}\\
+compSing_{2}\left[\alpha\right] & \mathrm{,\,otherwise}
+\end{cases}\\
+compSing_{2}\left[\alpha\right] & \equiv & \left(\mathtt{"todos"\vert"todas"\vert"ambos"\vert"ambas"\vert"nos"\cdot"termos"}\right)^{?}\cdot\\
+ &  & \;preposicao\left[\alpha\right]^{?}\cdot compSing_{1}\left[\alpha\right]\\
+compSing_{1}\left[\alpha\right] & \equiv & \left(\mathbf{artigosSing}\left[\alpha\right]\vert\mathtt{"no"\vert"na"}\right)^{?}\cdot\\
+ &  & \;\sum_{\eta\in\mathbf{nomesCompSing}\left[\alpha\right]}compSing_{1,a}\left[\alpha,\eta\right]\\
+compSing_{1,a}\left[\alpha,\eta\right] & \equiv & \begin{cases}
+nome\left[\eta\right] & \mathrm{,\,if\,\eta\,is\,definite}\\
+nome\left[\eta\right]\cdot\mathbf{numerosComp}\left[\alpha\right] & \mathrm{,\,otherwise}
+\end{cases}
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{eqnarray*}
+listaDe\left[\rho\right] & \equiv & listaDe\left[\rho,\mathtt{","}\right]\,\vert\,listaDe\left[\rho,\mathtt{";"}\right]\\
+listaDe\left[\rho,\sigma\right] & \equiv & \rho\cdot\left(\sigma\cdot\rho\right)^{*}\cdot\left(\sigma^{?}\cdot\mathtt{"e"}\cdot\rho\right)^{?}
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{landscape}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Tipos de Componentes
+\end_layout
+
+\begin_layout Standard
+\begin_inset Tabular
+<lyxtabular version="3" rows="8" columns="6">
+<features rotate="0" tabularvalignment="middle">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top" width="2cm">
+<column alignment="center" valignment="top" width="2cm">
+<column alignment="center" valignment="top" width="4.5cm">
+<column alignment="center" valignment="top" width="4.5cm">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+item
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+alínea
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+inciso
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+parágafo
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+artigo
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+genero
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+M
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+F
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+M
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+M
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+M
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+nomesPlural
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+itens
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+alíneas, letras
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+incisos, (incs)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+parágrafos,(pars),
+\begin_inset Formula $\mathsection\mathsection$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+artigos, (arts)
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+nomesSingular
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+item
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+alínea, letra
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+inciso, (inc)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $\mathrm{caput^{*}}$
+\end_inset
+
+, parágrafo, (par), 
+\begin_inset Formula $\mathsection$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+artigo, (art)
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+numerosComp
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+arabico
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+alfabeto, arabico, romano
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+arabico, romano
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $variosNumeros\left[ordinal\right]$
+\end_inset
+
+, 
+\begin_inset Formula $variosNumeros\left[arabico\right]$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $variosNumeros\left[ordinal\right]$
+\end_inset
+
+, 
+\begin_inset Formula $variosNumeros\left[arabico\right]$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+numerosEspecificos
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+alfabeto'
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+romano
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $variosNumeros\left[ordinal\right]$
+\end_inset
+
+, 
+\begin_inset Formula $variosNumeros\left[arabico_{>10}\right]$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+ordinal, 
+\begin_inset Formula $arabico_{>10}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+subComponente
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+item
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+alínea
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+inciso
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+parágrafo
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+opcional
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+sim
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{landscape}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Tipos de normas
 \end_layout
 
 \begin_layout Itemize
