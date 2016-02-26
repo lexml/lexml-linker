@@ -77,9 +77,6 @@ instance ProdMiddle ([VarName] -> ProdExpr -> Prod) where
    closeHead x = x []
 
 
-infix 4 #=
-
-pm #= pe = closeHead pm pe
 
 specialize :: M.Map ProdName Prod -> ProdExpr -> ProdExpr
 specialize env = specialize' M.empty
@@ -144,4 +141,47 @@ optimize (PE_Concat ps)
           optimize $ PE_Concat $ concatMap (\x -> case x of PE_Concat xs -> xs ; _ -> [x]) ps
   | otherwise = optimizeAndRedoIfNecessaryL PE_Concat ps
 optimize pe = pe                      
-    
+
+freeVarsPL = filter (not . null . snd) . map (\p -> ((case p of Prod pn _ _ -> pn),freeVarsP p))
+freeVarsP (Prod _ vs pe) = freeVarsPE pe `S.difference` S.fromList vs
+
+freeVarsPE (PE_Option pe) = freeVarsPE pe
+freeVarsPE (PE_Many pe) = freeVarsPE pe
+freeVarsPE (PE_Many1 pe) = freeVarsPE pe
+freeVarsPE (PE_Choice pl) = foldl S.union S.empty $ map freeVarsPE pl
+freeVarsPE (PE_Concat pl) = foldl S.union S.empty $ map freeVarsPE pl
+freeVarsPE (PE_Var vn) = S.singleton vn
+freeVarsPE (PE_NonTerminal _ pl) = foldl S.union S.empty $ map freeVarsPE pl
+freeVarsPE (PE_Bind vn pl pe) = (S.delete vn $ freeVarsPE pe) `S.union` 
+                                (foldl S.union S.empty $ map freeVarsPE pl)
+freeVarsPE _ = S.empty
+
+lexemes :: ProdExpr -> S.Set String
+lexemes (PE_Lex x) = S.singleton x
+lexemes (PE_Option x) = lexemes x
+lexemes (PE_Many x) = lexemes x
+lexemes (PE_Many1 x) = lexemes x
+lexemes (PE_Choice pl) = foldl S.union S.empty $ map lexemes pl
+lexemes (PE_Concat pl) = foldl S.union S.empty $ map lexemes pl
+lexemes (PE_NonTerminal _ pl) = foldl S.union S.empty $ map lexemes pl
+lexemes (PE_Bind vn pl pe) = lexemes pe `S.union`  (foldl S.union S.empty $ map lexemes pl)
+lexemes _ = S.empty
+
+lexemesPL = foldl S.union S.empty . map (\(Prod _ _ pe) -> lexemes pe)
+
+data NonTerminalRef = NTR String Int deriving (Eq,Ord)
+
+instance Show NonTerminalRef where
+  show (NTR name arity) = name ++ "/" ++ show arity
+
+ntrefs :: ProdExpr -> S.Set NonTerminalRef
+ntrefs (PE_Option x) = ntrefs x
+ntrefs (PE_Many x) = ntrefs x
+ntrefs (PE_Many1 x) = ntrefs x
+ntrefs (PE_Choice pl) = foldl S.union S.empty $ map ntrefs pl
+ntrefs (PE_Concat pl) = foldl S.union S.empty $ map ntrefs pl
+ntrefs (PE_NonTerminal pn pl) = S.add (NTR n (length pl)) $ foldl S.union S.empty $ map ntrefs pl
+ntrefs (PE_Bind vn pl pe) = ntrefs pe `S.union`  (foldl S.union S.empty $ map ntrefs pl)
+ntrefs _ = S.empty
+
+ntrefsL 

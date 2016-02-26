@@ -133,7 +133,7 @@ tnDecreto & \equiv & \left(\mathtt{"decreto"}\vert\mathtt{"decretos"}\right)\cdo
 "distrital"\vert"distritais"
 \end{array}}\right)^{?}\\
 tnEmendaConstituicional & \equiv & \mathtt{"emenda"\:"constitucional"}\\
-tnMediaProvisoria & \equiv & \left(\mathtt{"medida"}\vert\mathtt{"medidas"}\right)\cdot\\
+tnMedidaProvisoria & \equiv & \left(\mathtt{"medida"}\vert\mathtt{"medidas"}\right)\cdot\\
  &  & \left(\mathtt{"provisória"\vert"provisórias"\vert"provisoria"\vert"provisorias"}\right)\\
 tnCLT & \equiv & \mathtt{"clt"\vert\left("consolidacao"\vert"consolidação"\right)}\\
  &  & \quad\mathtt{"das""leis"\,"do"\,"trabalho"}\\
@@ -156,16 +156,14 @@ tnCF & \equiv & \mathtt{"cf"\:"/"}\:numero\left\langle (ano,\_,\_)\right\rangle
 \begin_inset Formula 
 \begin{eqnarray*}
 qualificadores & \equiv & qualificador^{+}\,\vert\,\mathtt{"-"}\cdot\left(\mathbf{palavra}\left\{ \_.value\neq\mathtt{"e"}\right\} \right)^{*}\\
-qualificador & \equiv & \left(\begin{array}{c}
-\left(\left(\mathtt{","\vert";"}\right)^{?}\cdot\left(\begin{array}{c}
+qualificador & \equiv & \left(\left(\mathtt{","\vert";"}\right)^{?}\cdot\left(\begin{array}{c}
 qualNumero\vert\\
 qualData\vert\\
 qualData2\vert\\
 qualMunicipio\vert\\
 qualEstado
 \end{array}\right)\right)\Bigg\vert\\
-qualAutoridade
-\end{array}\right)\\
+ &  & \quad qualAutoridade\\
 qualAutoridade & \equiv & qualAutoridadeHifen\vert qualAutoridadeExtenso\\
 qualAutoridadeHifen & \equiv & \mathtt{"-"}\cdot\mathtt{"cn"}\\
 qualAutoridadeExtenso & \equiv & \left(\begin{array}{c}
