@@ -218,5 +218,15 @@ linkerGrammar = grammar $ do
         opt (l "termos" *** pePrepArtigoPlural c) ***
         nomes (pn_nomesCompPlural c) ***
         compDirNomeOpt' c
-                          
+  forAllComps $ \c ->
+    pn_compDirSingComNome c ::=
+    	compDirSingPrelim c ***
+	nomes (nomesCompSingular c) ***
+	numerosEspecificos c ***
+	opt (compDirSingComNome_1 c)
+  forAllComps $ \c -> 
+    pn_compDirSingComNome c ::= case subComponente c of
+    	Nothing -> PE_Empty
+	Just sc -> (l "," ||| l ";") *** compDirComNome' c
+      
   
