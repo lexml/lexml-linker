@@ -4,6 +4,9 @@ module GrammarGenerator where
 
 import qualified Data.Map as M
 import qualified Data.Set as S
+import Control.Monad
+import Control.Monad.State
+import Control.Monad.Writer
 
 type VarName = String
 
@@ -16,15 +19,15 @@ data ProdExpr =
     | PE_Choice [ProdExpr] 
     | PE_Concat [ProdExpr] 
     | PE_Empty 
-    | PE_Var VarName
-    | PE_NonTerminal ProdName [ProdExpr]
-    | PE_Bind VarName [ProdExpr] ProdExpr
+    | PE_NonTerminal ProdName 
     | PE_Fail
     deriving (Eq,Ord,Show)
 
-data ProdName = PN String [Int] deriving (Eq,Ord,Show)
+data ProdName = PN String [ProdName] deriving (Eq,Ord,Show)
 
-data Prod = Prod ProdName [VarName] ProdExpr deriving (Eq,Ord,Show)
+infix 6 ::=
+
+data Prod = ProdName ::= ProdExpr deriving (Eq,Ord,Show)
 
 infixr 9 ***
 
@@ -46,37 +49,9 @@ many1 = PE_Many1
 
 empty = PE_Empty
 
-bind = PE_Bind 
+nt0 n = PE_NonTerminal (PN n []) 
 
-var = PE_Var
-
-nt0 n = PE_NonTerminal (PN n []) []
-
-nt n = PE_NonTerminal (PN n [])
-
-class ProdHead a where
-   buildHead :: a -> VarName -> [VarName] -> ProdExpr -> Prod
-
-instance ProdHead String where
-   buildHead x v vs = Prod (PN x []) (v : vs)
-
-instance ProdHead ([VarName] -> ProdExpr -> Prod) where
-   buildHead x v vs = x (v : vs)
-
-infixl 5 //
-
-x // y = buildHead x y
-
-class ProdMiddle a where
-  closeHead :: a -> ProdExpr -> Prod
-
-instance ProdMiddle String where
-  closeHead x = Prod (PN x []) []
-
-instance ProdMiddle ([VarName] -> ProdExpr -> Prod) where
-   closeHead x = x []
-
-
+nt n ns = PE_NonTerminal (PN n ns)
 
 specialize :: M.Map ProdName Prod -> ProdExpr -> ProdExpr
 specialize env = specialize' M.empty
@@ -88,13 +63,9 @@ specialize env = specialize' M.empty
         specialize'' (PE_Many1 pe) = PE_Many1 $ specialize'' pe
         specialize'' (PE_Choice ps) = PE_Choice $ map specialize'' ps
         specialize'' (PE_Concat ps) = PE_Concat $ map specialize'' ps
-        specialize'' PE_Empty = PE_Empty
-        specialize'' (PE_Var vn) = 
-            case M.lookup vn bs of Nothing -> error $ "free variable found: " ++ vn
-                                   Just expr -> expr
-        specialize'' (PE_NonTerminal pn ps) = PE_NonTerminal pn $ map specialize'' ps
-        specialize'' (PE_Bind vn vs pe) = PE_Choice $ [ specialize' (M.insert vn v bs) pe | v <- vs ]
-        specialize'' PE_Fail = PE_Fail
+        specialize'' p@PE_Empty = p
+        specialize'' p@(PE_NonTerminal pn) = p
+        specialize'' p@PE_Fail = p
 
 optimizeAndRedoIfNecessary f pe =
   let pe' = optimize pe in
@@ -142,20 +113,6 @@ optimize (PE_Concat ps)
   | otherwise = optimizeAndRedoIfNecessaryL PE_Concat ps
 optimize pe = pe                      
 
-freeVarsPL = filter (not . null . snd) . map (\p -> ((case p of Prod pn _ _ -> pn),freeVarsP p))
-freeVarsP (Prod _ vs pe) = freeVarsPE pe `S.difference` S.fromList vs
-
-freeVarsPE (PE_Option pe) = freeVarsPE pe
-freeVarsPE (PE_Many pe) = freeVarsPE pe
-freeVarsPE (PE_Many1 pe) = freeVarsPE pe
-freeVarsPE (PE_Choice pl) = foldl S.union S.empty $ map freeVarsPE pl
-freeVarsPE (PE_Concat pl) = foldl S.union S.empty $ map freeVarsPE pl
-freeVarsPE (PE_Var vn) = S.singleton vn
-freeVarsPE (PE_NonTerminal _ pl) = foldl S.union S.empty $ map freeVarsPE pl
-freeVarsPE (PE_Bind vn pl pe) = (S.delete vn $ freeVarsPE pe) `S.union` 
-                                (foldl S.union S.empty $ map freeVarsPE pl)
-freeVarsPE _ = S.empty
-
 lexemes :: ProdExpr -> S.Set String
 lexemes (PE_Lex x) = S.singleton x
 lexemes (PE_Option x) = lexemes x
@@ -163,25 +120,32 @@ lexemes (PE_Many x) = lexemes x
 lexemes (PE_Many1 x) = lexemes x
 lexemes (PE_Choice pl) = foldl S.union S.empty $ map lexemes pl
 lexemes (PE_Concat pl) = foldl S.union S.empty $ map lexemes pl
-lexemes (PE_NonTerminal _ pl) = foldl S.union S.empty $ map lexemes pl
-lexemes (PE_Bind vn pl pe) = lexemes pe `S.union`  (foldl S.union S.empty $ map lexemes pl)
+lexemes (PE_NonTerminal _) = S.empty
 lexemes _ = S.empty
 
-lexemesPL = foldl S.union S.empty . map (\(Prod _ _ pe) -> lexemes pe)
+lexemesPL = foldl S.union S.empty . map (\(_ ::= pe) -> lexemes pe)
 
-data NonTerminalRef = NTR String Int deriving (Eq,Ord)
-
-instance Show NonTerminalRef where
-  show (NTR name arity) = name ++ "/" ++ show arity
-
-ntrefs :: ProdExpr -> S.Set NonTerminalRef
+ntrefs :: ProdExpr -> S.Set ProdName
 ntrefs (PE_Option x) = ntrefs x
 ntrefs (PE_Many x) = ntrefs x
 ntrefs (PE_Many1 x) = ntrefs x
 ntrefs (PE_Choice pl) = foldl S.union S.empty $ map ntrefs pl
 ntrefs (PE_Concat pl) = foldl S.union S.empty $ map ntrefs pl
-ntrefs (PE_NonTerminal pn pl) = S.add (NTR n (length pl)) $ foldl S.union S.empty $ map ntrefs pl
-ntrefs (PE_Bind vn pl pe) = ntrefs pe `S.union`  (foldl S.union S.empty $ map ntrefs pl)
+ntrefs (PE_NonTerminal pn) = S.singleton pn 
 ntrefs _ = S.empty
 
-ntrefsL 
+type GrammarWriter a = Writer [Prod] a
+
+grammar = snd . runWriter
+
+infix 6 #=
+
+(#=) :: String -> ProdExpr -> GrammarWriter ()
+n #= pe = tell [PN n [] ::= pe]
+
+
+infix 6 ##=
+
+(##=) :: ProdName -> ProdExpr -> GrammarWriter ()
+pn ##= pe = tell [pn ::= pe]
+

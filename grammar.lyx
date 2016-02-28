@@ -79,7 +79,7 @@ Gramática
 \begin_layout Standard
 \begin_inset Formula 
 \begin{eqnarray*}
-norma & \equiv & \left(componenteDiretoComNome'\left[artigo\right]\,\vert\,componente\left[artigo\right]\right)\,norma'\\
+norma & \equiv & \left(compDirComNome'\left[artigo\right]\,\vert\,componente\left[artigo\right]\right)\,norma'\\
 norma' & \equiv & \left(\begin{array}{c}
 \texttt{","}^{?}\cdot\\
 \left(\mathtt{"todos"}\vert\mathtt{"todas"}\vert\mathtt{"ambas"}\vert\mathtt{"ambos"}\right)^{?}\cdot\\
@@ -194,17 +194,14 @@ numerosArabico\_nalfa & \equiv & numeroArabico\cdot\left(\mathtt{"-"}\cdot\left(
 \begin_layout Standard
 \begin_inset Formula 
 \begin{eqnarray*}
-compDirComNome'\left[\alpha\right] & \equiv & \begin{cases}
-listaDe\left[\begin{array}{c}
+compDirComNome'\left[\alpha\right] & \equiv & listaDe\left[compDirComNome'\_1\left[\alpha\right]\right]\\
+compDirComNome'\_1 & \equiv & \begin{cases}
 compDirPlural\left[\alpha\right]\,\vert\\
 compDirSingComNome\left[\alpha\right]\vert\\
-compDirComNome'\left[sub\left[\alpha\right]\right]
-\end{array}\right] & ,\alpha\mathrm{\:is\:optional}\wedge\\
- & \quad\alpha\mathrm{\:has\,subComp}\\
-listaDe\left[\begin{array}{c}
+compDirComNome'\left[sub\left[\alpha\right]\right] & ,\alpha\mathrm{\:is\:optional}\wedge\\
+\\
 compDirPlural\left[\alpha\right]\,\vert\\
-compDirSingComNome\left[\alpha\right]
-\end{array}\right] & ,\,\mathrm{otherwise}
+compDirSingComNome\left[\alpha\right] & \quad\alpha\mathrm{\:has\,subComp}
 \end{cases}\\
 compDirPlural\left[\alpha\right] & \equiv & \left(\mathbf{artigosPlural\left[\alpha\right]}\vert\mathtt{"nos"\vert"nas"}\right)^{?}\cdot\\
  &  & \:\left(\mathtt{"termos"}\cdot\mathbf{prepArtigPlural}\left[\alpha\right]\right)^{?}\cdot\\
@@ -238,8 +235,8 @@ compDirSingNomeOpt\left[\alpha\right]
 \end{array}\right] & ,\,\mathrm{otherwise}
 \end{cases}\\
 compDirSingNomeOpt\left[\alpha\right] & \equiv & compDirSingPrelim\left[\alpha\right]\cdot\\
- &  & \;nomes\left[nomesCompSing\left[\alpha\right]\right]^{?}\cdot\\
- &  & \:numerosEspecif\left[\alpha\right]\cdot\\
+ &  & \;nomes\left[\mathbf{nomesCompSing}\left[\alpha\right]\right]^{?}\cdot\\
+ &  & \:\mathbf{numerosEspecif}\left[\alpha\right]\cdot\\
  &  & \:compDirSingComNome_{1}\left[\alpha\right]^{?}
 \end{eqnarray*}
 
@@ -281,7 +278,7 @@ compSing_{2}\left[\alpha\right]
 compSing_{2}\left[\alpha\right] & \mathrm{,\,otherwise}
 \end{cases}\\
 compSing_{2}\left[\alpha\right] & \equiv & \left(\mathtt{"todos"\vert"todas"\vert"ambos"\vert"ambas"\vert"nos"\cdot"termos"}\right)^{?}\cdot\\
- &  & \;preposicao\left[\alpha\right]^{?}\cdot compSing_{1}\left[\alpha\right]\\
+ &  & \;\mathbf{preposicao}\left[\alpha\right]^{?}\cdot compSing_{1}\left[\alpha\right]\\
 compSing_{1}\left[\alpha\right] & \equiv & \left(\mathbf{artigosSing}\left[\alpha\right]\vert\mathtt{"no"\vert"na"}\right)^{?}\cdot\\
  &  & \;\sum_{\eta\in\mathbf{nomesCompSing}\left[\alpha\right]}compSing_{1,a}\left[\alpha,\eta\right]\\
 compSing_{1,a}\left[\alpha,\eta\right] & \equiv & \begin{cases}
@@ -305,8 +302,8 @@ nome\left[\eta\right]\cdot\mathbf{numerosComp}\left[\alpha\right] & \mathrm{,\,o
 \begin_layout Standard
 \begin_inset Formula 
 \begin{eqnarray*}
-listaDe\left[\rho\right] & \equiv & listaDe\left[\rho,\mathtt{","}\right]\,\vert\,listaDe\left[\rho,\mathtt{";"}\right]\\
-listaDe\left[\rho,\sigma\right] & \equiv & \rho\cdot\left(\sigma\cdot\rho\right)^{*}\cdot\left(\sigma^{?}\cdot\mathtt{"e"}\cdot\rho\right)^{?}
+listaDe\left[\rho\right] & \equiv & listaDe'\left[\rho,\mathtt{","}\right]\,\vert\,listaDe'\left[\rho,\mathtt{";"}\right]\\
+listaDe'\left[\rho,\sigma\right] & \equiv & \rho\cdot\left(\sigma\cdot\rho\right)^{*}\cdot\left(\sigma^{?}\cdot\mathtt{"e"}\cdot\rho\right)^{?}
 \end{eqnarray*}
 
 \end_inset
