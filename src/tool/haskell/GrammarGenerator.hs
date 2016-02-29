@@ -10,9 +10,15 @@ import Control.Monad.Writer
 
 type VarName = String
 
+data Lex = L_Literal String | L_TokenType String | L_Not Lex deriving (Eq,Ord)
+
+instance Show Lex where
+  show (L_Literal s) = "'" ++ s ++ "'"
+  show (L_TokenType s) = s
+  show (L_Not l) = "NOT(" ++ show l ++ ")"
 
 data ProdExpr = 
-      PE_Lex String 
+      PE_Lex Lex 
     | PE_Option ProdExpr 
     | PE_Many ProdExpr 
     | PE_Many1 ProdExpr
@@ -23,11 +29,48 @@ data ProdExpr =
     | PE_Fail
     deriving (Eq,Ord,Show)
 
+synLevel PE_Empty = 100
+synLevel PE_Fail = 100
+synLevel (PE_Lex _) = 100
+synLevel (PE_NonTerminal _) = 100
+synLevel (PE_Option _) = 90
+synLevel (PE_Many _) = 90
+synLevel (PE_Many1 _) = 90
+synLevel (PE_Concat _) = 80
+synLevel (PE_Choice _) = 70
+
+parIfNecessary enclosing subExp format 
+  | synLevel enclosing > synLevel subExp = format $ "(" ++ pePretty subExp ++ ")"
+  | otherwise = format $ pePretty subExp
+
+pePretty :: ProdExpr -> String
+pePretty (PE_Lex x) = show x
+pePretty enc@(PE_Option pe) = parIfNecessary enc pe (++ "?")
+pePretty enc@(PE_Many pe) = parIfNecessary enc pe (++ "*")
+pePretty enc@(PE_Many1 pe) = parIfNecessary enc pe (++ "⁺")
+pePretty (PE_Choice []) = "⊥"
+pePretty (PE_Choice [pe]) = pePretty pe
+pePretty enc@(PE_Choice (pe:pes)) = pePretty pe ++ concat [" | " ++ parIfNecessary enc p id | p <- pes ] 
+pePretty (PE_Concat []) = "λ"
+pePretty (PE_Concat [pe]) = pePretty pe
+pePretty enc@(PE_Concat (pe:pes)) = pePretty pe ++ concat [" ∙ " ++ parIfNecessary enc p id | p <- pes ] 
+pePretty PE_Empty =  "λ"
+pePretty (PE_NonTerminal pn) = pnPretty pn
+pePretty PE_Fail = "⊥"
+
 data ProdName = PN String [ProdName] deriving (Eq,Ord,Show)
+
+pnPretty :: ProdName -> String
+pnPretty (PN n []) = n
+pnPretty (PN n [p]) = n ++ "[" ++  pnPretty p ++ "]"
+pnPretty (PN n (p:pns)) = n ++ "[" ++ pnPretty p ++ concat ["," ++ pnPretty pp | pp <- pns ] ++ "]"
 
 infix 6 ::=
 
 data Prod = ProdName ::= ProdExpr deriving (Eq,Ord,Show)
+
+pPretty :: Prod -> String
+pPretty (pn ::= pe) = pnPretty pn ++ " ≡ " ++ pePretty pe
 
 infixr 9 ***
 
@@ -113,7 +156,11 @@ optimize (PE_Concat ps)
   | otherwise = optimizeAndRedoIfNecessaryL PE_Concat ps
 optimize pe = pe                      
 
-lexemes :: ProdExpr -> S.Set String
+optimizeP (pn ::= pe) = pn ::= (optimize pe)
+
+optimizePL = map optimizeP
+
+lexemes :: ProdExpr -> S.Set Lex
 lexemes (PE_Lex x) = S.singleton x
 lexemes (PE_Option x) = lexemes x
 lexemes (PE_Many x) = lexemes x
@@ -131,8 +178,10 @@ ntrefs (PE_Many x) = ntrefs x
 ntrefs (PE_Many1 x) = ntrefs x
 ntrefs (PE_Choice pl) = foldl S.union S.empty $ map ntrefs pl
 ntrefs (PE_Concat pl) = foldl S.union S.empty $ map ntrefs pl
-ntrefs (PE_NonTerminal pn) = S.singleton pn 
+ntrefs (PE_NonTerminal pn) = ntrefsPN pn 
 ntrefs _ = S.empty
+
+ntrefsPN pn = S.singleton pn 
 
 type GrammarWriter a = Writer [Prod] a
 

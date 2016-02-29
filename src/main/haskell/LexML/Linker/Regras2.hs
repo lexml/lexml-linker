@@ -137,8 +137,8 @@ compParagrafo = cpiMasculino {
     , levelComp = 1
     , nomesCompPlural = [NC_Simple "parágrafos", NC_Simple "paragrafos", NC_Abrev "pars", NC_Simbolo Paragrafos, NC_Outro parseParagrafos]
     , nomesCompSingular = [NC_Outro caput, NC_Simple "parágrafo", NC_Simple "paragrafo", NC_Abrev "par", NC_Simbolo Paragrafo]
-    , numerosComp = [variosNumeros' numeroOrdinal, variosNumeros' numeroArabico]
-    , numerosEspecificos = [variosNumeros' numeroOrdinal, variosNumeros' (numeroArabicoMaiorQue 10)]
+    , numerosComp = [variosNumeros numeroOrdinal, variosNumeros numeroArabico]
+    , numerosEspecificos = [variosNumeros numeroOrdinal, variosNumeros (numeroArabicoMaiorQue 10)]
     , subComponente = Just compInciso
     , selectComp = U.selecionaParagrafo
     , selectDefault = Just $ U.selecionaCaput
@@ -149,7 +149,7 @@ compArtigo = cpiMasculino {
       descricaoComp = "artigo"
     , nomesCompPlural = [NC_Simple "artigos", NC_Abrev "arts"]
     , nomesCompSingular = [NC_Simple "artigo", NC_Abrev "art"]
-    , numerosComp = [variosNumeros' numeroOrdinal, variosNumeros' numeroArabico]
+    , numerosComp = [variosNumeros numeroOrdinal, variosNumeros numeroArabico]
     , numerosEspecificos = [numeros numeroOrdinal, numeros (numeroArabicoMaiorQue 10)]
     , subComponente = Just compParagrafo
     , selectComp = U.selecionaArtigo
@@ -176,15 +176,12 @@ numeros m = do
   return (i,ff,n : maybeToList comp)
 
 
-variosNumeros' ::  SimpleNumeroParser -> NumeroParser
-variosNumeros' m = variosNumeros m [numero >>= \ (p,(n,_)) -> return (p,p,n), numeroAlfabeto]
-
-variosNumeros ::  SimpleNumeroParser -> [SimpleNumeroParser] -> NumeroParser
-variosNumeros primeiro outros = do
+variosNumeros ::  SimpleNumeroParser -> NumeroParser
+variosNumeros m outros = do
   (inicio,fim1,n) <- primeiro 
   nl <- many $ try $ do
         hifen
-        (_,fim,n) <- choice $ map try $ outros
+        (_,fim,n) <- choice $ map try $ [numero >>= \ (p,(n,_)) -> return (p,p,n), numeroAlfabeto]
         return (fim,n)
   let fim2 = case nl of 
                 [] -> fim1
@@ -688,7 +685,7 @@ parseQualNumero ::  QualificadorParser
 parseQualNumero = try $ do
   optional $ constanteI "e"
   optional $ try abrevNumero
-  (i,f,n) <- variosNumeros' numeroArabico
+  (i,f,n) <- variosNumeros numeroArabico
   return (i,f,NLD_Numero n)
 
 parseQualData ::  QualificadorParser
