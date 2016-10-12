@@ -6,7 +6,7 @@ import System.Directory
 import System.FilePath
 import Data.List
 import qualified Data.ByteString as B
-import Data.Digest.OpenSSL.MD5
+import LexML.MD5
 
 type Domain = String
 

@@ -27,7 +27,7 @@ import System.Log.Handler.Syslog
 import System.Log.Handler.Simple
 import Prelude hiding (log)
 import LexML.Version
-import Data.Digest.OpenSSL.MD5
+import LexML.MD5
 import LexML.Cache
 import Network.URI
 import qualified Data.Set as S
