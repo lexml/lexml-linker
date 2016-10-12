@@ -89,7 +89,7 @@ serve port cacheFunc handlerfunc = withSocketsDo $
        setSocketOption sock ReuseAddr 1
 
        -- Bind it to the address we're listening to
-       bindSocket sock (addrAddress serveraddr)
+       bind sock (addrAddress serveraddr)
 
 
        -- Start listening for connection requests.  Maximum queue size
