@@ -8,3 +8,4 @@ cabal-dev
 /.project
 /.dist-buildwrapper
 *.swp
+.stack-work/
