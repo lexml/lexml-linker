@@ -9,3 +9,5 @@ cabal-dev
 /.dist-buildwrapper
 *.swp
 .stack-work/
+.idea/
+.vscode/
