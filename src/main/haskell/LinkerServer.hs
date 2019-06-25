@@ -4,7 +4,7 @@ import Data.Time
 import System.CPUTime
 import Data.Bits
 import Network.Socket
-import Network.BSD
+{- import Network.BSD -}
 import Data.List
 import Control.Concurrent
 import Control.Concurrent.MVar

@@ -1,0 +1,11 @@
+Dockerfile
+.dockerignore
+build.sh
+README.md
+stack.yaml
+Makefile
+
+.git
+.gitignore
+.project
+
