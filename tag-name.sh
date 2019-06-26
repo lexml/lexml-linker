@@ -1,3 +1,0 @@
-#!/bin/bash
-. version
-echo "${LINKER_VERSION}_${HASKELL_VERSION}_${LEXML_ALPINE_GLIBC_VERSION}"

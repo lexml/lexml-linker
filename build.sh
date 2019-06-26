@@ -1,7 +1,6 @@
 #!/bin/bash
 
 . version
-VERSION=`./tag-name.sh`
 
 ncpus_default=`cat /proc/cpuinfo  | grep processor | tail -n 1 | sed -e 's/processor.*: *//g'`
 ncpus_default=$(( $ncpus_default + 1))
@@ -24,6 +23,6 @@ function getExtraParameters {
 
 EXTRA_PARAMS=$(getExtraParameters)
 
-docker build ${EXTRA_PARAMS} --build-arg ncpus=$ncpus --build-arg version=${VERSION} --build-arg HASKELL_VERSION=$HASKELL_VERSION \
+docker build ${EXTRA_PARAMS} --build-arg ncpus=$ncpus --build-arg version=${LINKER_VERSION} --build-arg HASKELL_VERSION=$HASKELL_VERSION \
        --build-arg LEXML_ALPINE_GLIBC_VERSION=$LEXML_ALPINE_GLIBC_VERSION \
-       . -t lexmlbr/lexml-linker:${VERSION}
+       . -t lexmlbr/lexml-linker:${LINKER_VERSION}
