@@ -50,7 +50,11 @@ data ParserState =
 defState = 
   ParserState {
       psEhUmOrgao = const $ const True
-    , psEhUmaInstituicao = const False
+    , psEhUmaInstituicao = 
+        \(Nome n) -> elem n [
+          ["senado","federal"],
+          ["camara","deputados"],
+          ["congresso","nacional"] ]
     , psObtemSubtipo = STD1_Norma . TipoNorma 
   }
 

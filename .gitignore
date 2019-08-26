@@ -11,3 +11,4 @@ cabal-dev
 .stack-work/
 .idea/
 .vscode/
+*.lock

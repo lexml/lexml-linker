@@ -4,6 +4,7 @@ import LexML.URN.Types
 import Data.Maybe (fromJust,maybe)
 import qualified Data.Map as M
 import Data.List
+import System.IO.Unsafe (unsafePerformIO)
 
 leiFederal :: [Integer] -> Dia -> Mes -> Ano -> URNLexML
 leiFederal numLei dia mes ano = URNLexML (Local Brasil Nothing) (Documento (A_Convencionada AC_Federal)  (TipoDocumento1 (STD1_Norma (TipoNorma (Nome ["lei"]))) Nothing) (Descritor (TD_Datas (Datas (Left $ Data ano mes dia)) (Just $ ID_Ids [IdDocumento $ makeNormalID numLei])) [] Nothing) ) Nothing Nothing Nothing
@@ -110,7 +111,17 @@ selecionaLeiApelido nl (URNLexML local (Documento autoridade  _ _) _ _ _) =
 apelidoCLT = normaFederal ["decreto","lei"] [5452] 1 5 1943
 
 apelidoRegimentoInternoSenado = 
-    URNLexML (Local Brasil Nothing) (Documento autoridadeSenado (TipoDocumento1 (STD1_Norma (TipoNorma (Nome ["resolucao"]))) Nothing) (Descritor (TD_Datas (Datas (Left $ Data 1970 11 27)) (Just $ ID_Ids [IdDocumento $ makeNormalID [93]])) [] Nothing) ) Nothing Nothing Nothing
+    URNLexML (Local Brasil Nothing) (Documento autoridadeSenado (TipoDocumento1 (STD1_Norma (TipoNorma (Nome ["regimento","interno"]))) Nothing) (Descritor (TD_Datas (Datas (Left $ Data 1970 11 27)) (Just $ ID_Ids [IdDocumento $ makeNormalID [1970]])) [] Nothing) ) Nothing Nothing Nothing
+
+apelidoRegimentoInternoCamara = 
+    URNLexML (Local Brasil Nothing) (Documento autoridadeCamara (TipoDocumento1 (STD1_Norma (TipoNorma (Nome ["regimento","interno"]))) Nothing) (Descritor (TD_Datas (Datas (Left $ Data 1989 9 21)) (Just $ ID_Ids [IdDocumento $ makeNormalID [1989]])) [] Nothing) ) Nothing Nothing Nothing
+
+apelidoRegimentoComumCongresso = 
+    URNLexML (Local Brasil Nothing) (Documento autoridadeCongresso (TipoDocumento1 (STD1_Norma (TipoNorma (Nome ["regimento","interno"]))) Nothing) (Descritor (TD_Datas (Datas (Left $ Data 1970 8 11)) (Just $ ID_Ids [IdDocumento $ makeNormalID [1970]])) [] Nothing) ) Nothing Nothing Nothing
+
+apelidoRegimentoInterno urn@(URNLexML (Local Brasil Nothing) (Documento aut _ _) _ _ _ ) =
+  if aut == autoridadeCamara  then apelidoRegimentoInternoCamara 
+      else apelidoRegimentoInternoSenado
 
 apelidoRegulamentoAdministrativoSenado = 
     URNLexML (Local Brasil Nothing) (Documento autoridadeSenado (TipoDocumento1 (STD1_Norma (TipoNorma (Nome ["resolucao"]))) Nothing) (Descritor (TD_Datas (Datas (Left $ Data 1972 11 10)) (Just $ ID_Ids [IdDocumento $ makeNormalID [58]])) [] Nothing) ) Nothing Nothing Nothing
@@ -143,6 +154,10 @@ selecionaConstituicao _ = URNLexML (Local Brasil Nothing) (Documento (A_Convenci
 selecionaResolucao = selecionaNormaAutoridade' (Just autoridadeSenado) ["resolucao"]
 
 autoridadeSenado = A_Normal [SJ_Instituicao (Instituicao $ Nome ["senado","federal"]) [] Nothing]
+
+autoridadeCamara = A_Normal [SJ_Instituicao (Instituicao $ Nome ["camara","deputados"]) [] Nothing]
+
+autoridadeCongresso = A_Normal [SJ_Instituicao (Instituicao $ Nome ["congresso","nacional"]) [] Nothing]
 
 selecionaMunicipio :: [String] -> [String] -> URNLexML -> URNLexML
 selecionaMunicipio nomeMunicipio nomeEstado (URNLexML local doc mversao mforma mfragmento) = 
