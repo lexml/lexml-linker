@@ -3,12 +3,12 @@ module LexML.Linker.ParserBase where
 
 import Data.Char
 import Data.Maybe
-import Control.Monad
-import Control.Monad.Except
-import Control.Monad.Trans
-import Control.Monad.Identity
-import Control.Monad.State as CMS
-import Control.Monad.Writer
+import Control.Monad hiding (fail)
+import Control.Monad.Except hiding (fail)
+import Control.Monad.Trans hiding (fail)
+import Control.Monad.Identity hiding (fail)
+import Control.Monad.State as CMS hiding (fail)
+import Control.Monad.Writer hiding (fail)
 import LexML.Linker.Decorator (DecorationMap, addURN)
 import Data.Typeable
 import LexML.Linker.LexerPrim (Token, TokenData(..), tokenDataLength, Genero(..))
@@ -20,7 +20,8 @@ import LexML.URN.Types
 import LexML.URN.Show
 import qualified LexML.URN.Atalhos as U
 import qualified Data.Set as S
-import Prelude hiding (log)
+import Prelude hiding (log, fail)
+import Control.Monad.Fail
 
 logCheck :: (LinkerParserState -> Bool) -> String -> LinkerParserMonad ()
 logCheck logf msg = lift $ do
@@ -227,7 +228,7 @@ combine leftl right@(_,fim,urn) = res
     ((ilast,_,urnlast):beforeLast) = reverse leftl'
     leftl'' = reverse ((ilast,fim,urnlast):beforeLast)
 
-combineM :: Monad m => m ParseCaseResult2 -> m ParseCaseResult2 -> m ParseCaseResult2
+combineM :: MonadFail m => m ParseCaseResult2 -> m ParseCaseResult2 -> m ParseCaseResult2
 combineM leftM rightM = do
   leftl <- leftM
   (right:rl) <- rightM

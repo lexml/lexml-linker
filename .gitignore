@@ -12,3 +12,6 @@ cabal-dev
 .idea/
 .vscode/
 *.lock
+.cabal-sandbox/
+.ghc.*
+cabal.project.local*
