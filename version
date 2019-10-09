@@ -1,3 +1,3 @@
-HASKELL_VERSION=8.4
+HASKELL_VERSION=8.6.5
 LEXML_ALPINE_GLIBC_VERSION=3.10.0_2.29-r0_3
 LINKER_VERSION=`grep '^version:' lexml-parser.cabal | sed -e 's/version:[[:space:]]*//g'`

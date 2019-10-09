@@ -51,7 +51,7 @@ analise = Analise {
     , tipoSaida = enum [
             URNs &= help "Gera lista de URNs reconhecidas (default)"
           , HTML &= help "Gera HTML decorado com links para o resolver do LexML"
---          , XML  &= help "Gera XML decorado com as URNs reconhecidas"
+          , XML  &= help "Gera XML decorado com as URNs reconhecidas"
         ] 
     , enderecoResolver = "http://homologa.lexml.gov.br/urn/URNLEXML" &= opt "http://homologa.lexml.gov.br/urn/URNLEXML" &= help "Endereço do LexML Resolver, a string URNLEXML será substituída pela URN. Usado quando com o tipo de saída HTML"
     , contexto = "federal" &= typ "URN" &= opt "federal" &= help "URN Lex ML de contexto. Podem ser usados os apelidos 'federal' e 'senado' para o contexto de leis federais e resoluções do senado, respectivamente, ou INLINE para ser lido alternadamente às linhas de entrada" 
@@ -120,7 +120,7 @@ main = do
           , loOutputType = case tipoSaida args of
                 URNs -> OT_URNS
                 HTML -> OT_AHREF
---                XML  -> OT_XLINK
+                XML  -> OT_XLINK
           , loInputType = case tipoEntrada args of
                 TEXT -> IT_TEXT
                 HXML -> IT_TAGGED
