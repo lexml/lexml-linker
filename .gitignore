@@ -16,3 +16,4 @@ cabal-dev
 .ghc.*
 cabal.project.local*
 packages/hackage.haskell.org
+dist-newstyle/**
