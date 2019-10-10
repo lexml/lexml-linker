@@ -47,12 +47,12 @@ analise = Analise {
     , tipoEntrada = enum [
             TEXT &= help "Texto de entrada sem mark-up"
           , HXML &= help "Texto de entrada com mark-up (XML/HTML) (default)"
-        ] 
+        ]   
     , tipoSaida = enum [
             URNs &= help "Gera lista de URNs reconhecidas (default)"
           , HTML &= help "Gera HTML decorado com links para o resolver do LexML"
           , XML  &= help "Gera XML decorado com as URNs reconhecidas"
-        ] 
+        ]  
     , enderecoResolver = "http://homologa.lexml.gov.br/urn/URNLEXML" &= opt "http://homologa.lexml.gov.br/urn/URNLEXML" &= help "Endereço do LexML Resolver, a string URNLEXML será substituída pela URN. Usado quando com o tipo de saída HTML"
     , contexto = "federal" &= typ "URN" &= opt "federal" &= help "URN Lex ML de contexto. Podem ser usados os apelidos 'federal' e 'senado' para o contexto de leis federais e resoluções do senado, respectivamente, ou INLINE para ser lido alternadamente às linhas de entrada" 
     , logaRegras = False &= help "Loga a execução das regras"
@@ -83,7 +83,7 @@ readInput lo True (Just handle) proc = do
   eof <- hIsEOF handle
   if eof then return () else do 
     context <- hGetLine handle
-    if context == "" then return () else do 
+    if context == "" then readInput lo True (Just handle) proc else do 
       ctx <- parseContexto context
       let lo' = lo { loContext = ctx }
       lines <- readUntilEndMarker handle
@@ -155,5 +155,6 @@ main = do
         when ctxInline $ do
           hPutStrLn outHandle "" 
           hPutStrLn outHandle "###LEXML-END###" 
+          hFlush outHandle
   hClose outHandle 
   return ()
