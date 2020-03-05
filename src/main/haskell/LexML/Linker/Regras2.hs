@@ -278,10 +278,18 @@ parseComponenteDireto' reqNome cpi = do
                    log "parseComponenteDiretoSingular(preposicao)" "end"])
       (minicio, mselect) <- (if reqNome then id else option (Nothing,Nothing)) (parseNomes (nomesCompSingular cpi) >>= \ (a,b) -> return (Just a,b))
       log "parseComponenteDiretoSingular" $ "minicio = " ++ show minicio
-      (inicio2,fim,num) <- choice $ map try $ numerosEspecificos cpi
+      let mUnico = selectUnico cpi
+      let unicoParser = \(labels,sel) -> do
+             log' cpi "parseComponenteSingular1"  $ "Unico: start labels = " ++ show labels
+             p1 <- choice (map (try . constanteI) labels)
+             log' cpi "parseComponenteSingular1" "Unico: succeeded"
+             return (p1,p1,(Nothing,sel)) 
+      let mu = (maybeToList $ fmap unicoParser mUnico) :: [LinkerParserMonad (Pos,Pos,(Maybe [Integer],SelectF))]
+      let np = (\p -> try p >>= \(p1,p2,num) -> return (p1,p2,(Just num,sc num))) :: NumeroParser -> LinkerParserMonad (Pos,Pos,(Maybe [Integer],SelectF))
+
+      (inicio2,fim,(num,sc')) <- choice (mu ++ (map np $ numerosEspecificos cpi))
       log "parseComponenteDiretoSingular" $ "(inicio2,fim,num) = " ++ show (inicio2,fim,num)
       let inicio = maybe inicio2 id minicio
-          sc' = sc num     
       subcomps <- option [] $ try $ case subComponente cpi of
           Nothing -> return []
           Just subc -> do
@@ -386,7 +394,7 @@ parseComponenteSingular1 cpi@(CPI { nomesCompSingular = nomesCompSingular,
       Just s -> return (inicio,inicio,s)
       Nothing -> do
         let unicoParser = \(labels,sel) -> do
-              log' cpi "parseComponenteSingular1"  $ "Unico : start labels = " ++ show labels
+              log' cpi "parseComponenteSingular1"  $ "Unico: start labels = " ++ show labels
               p1 <- choice (map (try . constanteI) labels)
               log' cpi "parseComponenteSingular1" "Unico: succeeded"
               return (p1,p1,(Nothing,sel)) 
