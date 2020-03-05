@@ -49,10 +49,10 @@ splitFragmento tcf comps = (bef,middle,comps'')
 
 alteraFragmento f (URNLexML local doc versao forma fragmento) = URNLexML local doc versao forma (f fragmento)
 
-selecionaFragmento :: TipoComponenteFragmento -> [Integer] -> URNLexML -> URNLexML
+selecionaFragmento :: TipoComponenteFragmento -> UnicoOuIndices -> URNLexML -> URNLexML
 selecionaFragmento = selecionaFragmento' True
 
-selecionaFragmento' :: Bool -> TipoComponenteFragmento -> [Integer] -> URNLexML -> URNLexML
+selecionaFragmento' :: Bool -> TipoComponenteFragmento -> UnicoOuIndices -> URNLexML -> URNLexML
 selecionaFragmento' canReplace tcf nl = alteraFragmento f
   where
     f (Just (Fragmento comps)) = Just $ Fragmento $ before ++ [c] ++ after
@@ -61,12 +61,15 @@ selecionaFragmento' canReplace tcf nl = alteraFragmento f
             c = maybe nc (if canReplace then const nc else id) m
     f _ = Just $ Fragmento $ [CompFragmento tcf nl]
 
-selecionaInciso n = selecionaFragmento TCF_Inciso n . selecionaFragmento' False TCF_Caput []
+selecionaInciso n = selecionaFragmento TCF_Inciso n . selecionaFragmento' False TCF_Caput (UI_Indices [])
+selecionaIncisoUnico = selecionaInciso UI_Unico
 selecionaParagrafo = selecionaFragmento TCF_Paragrafo
-selecionaCaput = selecionaFragmento TCF_Caput []
+selecionaParagrafoUnico = selecionaParagrafo UI_Unico
+selecionaCaput = selecionaFragmento TCF_Caput (UI_Indices [])
 selecionaAlinea = selecionaFragmento TCF_Alinea
 selecionaItem = selecionaFragmento TCF_Item
 selecionaArtigo = selecionaFragmento TCF_Artigo
+selecionaArtigoUnico = selecionaArtigo UI_Unico
 
 selecionaNorma = selecionaNormaAutoridade Nothing
 

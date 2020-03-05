@@ -10,7 +10,6 @@ import Control.Monad.Except
 import Control.Monad.Identity
 import Control.Monad.State
 import Control.Monad.Writer
-import LexML.Linker.Decorator (DecorationMap, addURN)
 import Data.Typeable
 import LexML.Linker.LexerPrim (Token, TokenData(..), tokenDataLength)
 import LexML.URN.Utils
@@ -48,7 +47,8 @@ data ComponenteParseInfo = CPI {
       subComponente :: Maybe ComponenteParseInfo,
       preposicoes :: [String],
       selectComp :: [Integer] -> SelectF,
-      selectDefault :: Maybe SelectF
+      selectDefault :: Maybe SelectF,
+      selectUnico :: Maybe ([String],SelectF)
   }
 
 log ::  String -> LinkerParserMonad ()
@@ -78,6 +78,7 @@ cpiFeminino = CPI {
     , preposicoes = ["da"]
     , selectComp = const id
     , selectDefault = Nothing
+    , selectUnico = Nothing
 }
 
 cpiMasculino = CPI {
@@ -93,6 +94,7 @@ cpiMasculino = CPI {
     , preposicoes = ["do"]
     , selectComp = const id
     , selectDefault = Nothing
+    , selectUnico = Nothing
 }
 
 
@@ -103,7 +105,7 @@ compItem = cpiMasculino {
     , nomesCompPlural = [NC_Simple "itens"]
     , nomesCompSingular = [NC_Simple "item"]
     , numerosComp = [numeros numeroArabico]
-    , selectComp = U.selecionaItem
+    , selectComp = U.selecionaItem . UI_Indices
   }
 
 compAlinea ::  ComponenteParseInfo
@@ -115,7 +117,7 @@ compAlinea = cpiFeminino {
     , numerosComp = [numeros numeroAlfabeto, numeros numeroArabico, numeros numeroRomano]
     , numerosEspecificos = [numeros numeroAlfabeto']
     , subComponente = Just compItem
-    , selectComp = U.selecionaAlinea
+    , selectComp = U.selecionaAlinea . UI_Indices
   }
 
 
@@ -128,7 +130,8 @@ compInciso = cpiMasculino {
     , numerosComp = [numeros numeroArabico, numeros numeroRomano]
     , numerosEspecificos = [numeros numeroRomano]
     , subComponente = Just compAlinea
-    , selectComp = U.selecionaInciso
+    , selectComp = U.selecionaInciso . UI_Indices
+    , selectUnico = Just (["único","unico"],U.selecionaIncisoUnico)
   }
 
 compParagrafo ::  ComponenteParseInfo
@@ -140,8 +143,9 @@ compParagrafo = cpiMasculino {
     , numerosComp = [variosNumeros' numeroOrdinal, variosNumeros' numeroArabico]
     , numerosEspecificos = [variosNumeros' numeroOrdinal, variosNumeros' (numeroArabicoMaiorQue 10)]
     , subComponente = Just compInciso
-    , selectComp = U.selecionaParagrafo
+    , selectComp = U.selecionaParagrafo . UI_Indices
     , selectDefault = Just $ U.selecionaCaput
+    , selectUnico = Just (["único","unico"],U.selecionaParagrafoUnico)
   }  
 
 compArtigo ::  ComponenteParseInfo
@@ -151,8 +155,9 @@ compArtigo = cpiMasculino {
     , nomesCompSingular = [NC_Simple "artigo", NC_Abrev "art"]
     , numerosComp = [variosNumeros' numeroOrdinal, variosNumeros' numeroArabico]
     , numerosEspecificos = [numeros numeroOrdinal, numeros (numeroArabicoMaiorQue 10)]
-    , subComponente = Just compParagrafo
-    , selectComp = U.selecionaArtigo
+    , subComponente = Just compParagrafo 
+    , selectComp = U.selecionaArtigo . UI_Indices
+    , selectUnico = Just (["único","unico"],U.selecionaArtigoUnico)
   }
 
 caput :: LinkerParserMonad (Pos,Maybe SelectF)
@@ -370,7 +375,8 @@ parseComponenteSingular1 :: ComponenteParseInfo -> LinkerParserMonad SingleParse
 parseComponenteSingular1 cpi@(CPI { nomesCompSingular = nomesCompSingular,
                                artigosSingular = artigosSingular,
                                numerosComp = numerosComp,
-                               selectComp = selectComp }) = do
+                               selectComp = selectComp,
+                               selectUnico = mUnico}) = do
     log' cpi "parseComponenteSingular1" "start"
     optional $ choice $ map constanteI $ artigosSingular ++ ["no", "na"]
     log' cpi "parseComponenteSingular1" "artigo parsed"
@@ -379,9 +385,16 @@ parseComponenteSingular1 cpi@(CPI { nomesCompSingular = nomesCompSingular,
     case mselect of
       Just s -> return (inicio,inicio,s)
       Nothing -> do
-        (_,fim,num) <- choice (map try numerosComp) 
-        log' cpi "parseComponenteSingular1" $ "num parsed: " ++ show (fim,num)
-        return (inicio,fim,selectComp num)
+        let unicoParser = \(labels,sel) -> do
+              log' cpi "parseComponenteSingular1"  $ "Unico : start labels = " ++ show labels
+              p1 <- choice (map (try . constanteI) labels)
+              log' cpi "parseComponenteSingular1" "Unico: succeeded"
+              return (p1,p1,(Nothing,sel)) 
+        let mu = (maybeToList $ fmap unicoParser mUnico) :: [LinkerParserMonad (Pos,Pos,(Maybe [Integer],SelectF))]
+        let np = (\p -> try p >>= \(p1,p2,num) -> return (p1,p2,(Just num,selectComp num))) :: NumeroParser -> LinkerParserMonad (Pos,Pos,(Maybe [Integer],SelectF))
+        (_,fim,(mnum,selNum)) <- choice (mu ++ map np numerosComp)
+        log' cpi "parseComponenteSingular1" $ "num parsed: " ++ show (fim,mnum)
+        return (inicio,fim,selNum)
     
 parsePreposicao :: ComponenteParseInfo -> LinkerParserMonad ()
 parsePreposicao (CPI { preposicoes = preposicoes }) = (parseSeparator >> optional prep) <|> prep
@@ -514,7 +527,7 @@ numeroOrdinal = ordinal <|> ordinal' <|> extenso
         f (Ordinal n _) = return n
         f _ = fail "ordinal expected"  
     extenso = parseLookup [
-      ("único",1),("unico",1),("primeiro",1),
+      ("primeiro",1),
       ("segundo",2),("terceiro",3),("quarto",4),
       ("quinto",5),("sexto",6),("sétimo",7),("setimo",7),
       ("oitavo",8),("nono",9),("décimo",10),("decimo",10) ] >>= \ (p, r) -> return (p,p,r)

@@ -186,7 +186,7 @@ nomeProprio s@(c1:cs1) = fmap fst $ lToken constante'
 
 constantesI2 :: [String] -> LinkerParserMonad ((Int,Int,Int),(Int,Int,Int))
 constantesI2 l = do
-  r <- mapM constanteI l
+  r <- mapM (try . constanteI) l
   return (head r, last r)
 
 constantesI :: [String] -> LinkerParserMonad (Int,Int,Int)

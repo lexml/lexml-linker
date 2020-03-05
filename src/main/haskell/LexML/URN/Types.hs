@@ -130,7 +130,9 @@ newtype Fragmento = Fragmento [CompFragmento] deriving (Eq,Ord,Typeable,Show,Rea
 
 type IndiceFragmento = Integer
 
-data CompFragmento = CompFragmento TipoComponenteFragmento [IndiceFragmento] deriving (Eq,Ord,Typeable,Show,Read,G.Data)
+data UnicoOuIndices = UI_Unico | UI_Indices [IndiceFragmento] deriving (Eq,Ord,Typeable,Show,Read,G.Data)
+
+data CompFragmento = CompFragmento TipoComponenteFragmento UnicoOuIndices deriving (Eq,Ord,Typeable,Show,Read,G.Data)
 
 data TipoComponenteFragmento = 
     TCF_Parte     | TCF_Livro       | TCF_Titulo 

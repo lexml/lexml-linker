@@ -2,7 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                lexml-parser
-version:             1.3.2
+version:             1.4.0
 -- synopsis:
 -- description:
 license:             LGPL-2.1
@@ -22,10 +22,11 @@ executable linkertool
   build-tool-depends: alex:alex >= 3.2.1 && < 3.3
   build-depends:   base >= 4,
                    syb >= 0.4.1, 
-                   network >= 2.4.1.2,
+--                   network >= 2.4.1.2,
+                   network >= 3.1.0.1,
                    network-uri >= 2.6.0.3,
                    time >= 1.4.0.1,
-                   hslogger >= 1.2.3,
+                   hslogger >= 1.3.1.0,
                    tagsoup >= 0.13,
                    parsec >= 3.1.3,
                    mtl >= 2.1.2,
@@ -49,10 +50,11 @@ executable simplelinker
   build-tool-depends: alex:alex >= 3.2.1 && < 3.3
   build-depends:   base >= 4,
                    syb >= 0.4.1, 
-                   network >= 2.4.1.2,
+--                   network >= 2.4.1.2,
+                   network >= 3.1.0.1,
                    network-uri >= 2.6.0.3,
                    time >= 1.4.0.1,
-                   hslogger >= 1.2.3,
+                   hslogger >= 1.3.1.0,
                    tagsoup >= 0.13,
                    parsec >= 3.1.3,
                    mtl >= 2.1.2,
@@ -77,10 +79,11 @@ executable LinkerServer
   build-tool-depends: alex:alex >= 3.2.1 && < 3.3
   build-depends:   base >= 4,
                    syb >= 0.4.1, 
-                   network >= 2.4.1.2,
+--                   network >= 2.4.1.2,
+                   network >= 3.1.0.1,
                    network-uri >= 2.6.0.3,
                    time >= 1.4.0.1,
-                   hslogger >= 1.2.3,
+                   hslogger >= 1.3.1.0,
                    tagsoup >= 0.13,
                    parsec >= 3.1.3,
                    mtl >= 2.1.2,

@@ -185,7 +185,9 @@ instance URNShow Fragmento where
   urnShow (Fragmento comps) = showBetween "_" comps
 
 instance URNShow CompFragmento where
-  urnShow (CompFragmento tipoComponente indices) =
+  urnShow (CompFragmento tipoComponente UI_Unico) =
+    urnShow tipoComponente ++ "1u"
+  urnShow (CompFragmento tipoComponente (UI_Indices indices)) =
     urnShow tipoComponente ++ showBetween "-" indices
 
 instance URNShow TipoComponenteFragmento where

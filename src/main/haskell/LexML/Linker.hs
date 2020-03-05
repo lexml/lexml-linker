@@ -44,7 +44,7 @@ data LinkerError = LE_Lexer LexError | LE_Parser LinkerParseError | LE_Other Str
 
 myParseOptions = parseOptions { optTagPosition = False }
 
-mapError :: (Monad m, MonadError e1 (ExceptT e1 m), MonadError e2 (ExceptT e2 m)) => (e1 -> e2) -> ExceptT e1 m a -> ExceptT e2 m a
+mapError :: Monad m => (e1 -> e2) -> ExceptT e1 m a -> ExceptT e2 m a
 mapError g = mapExceptT (\m -> do { res <- m ; return $ either (Left . g) Right res })
 
 type NomeContexto = String
