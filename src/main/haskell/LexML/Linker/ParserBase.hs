@@ -51,6 +51,7 @@ data LinkerParserState = LPS {
       , lpsLogOther :: Bool
       , lpsLogMessages :: [String]
       , lpsConstituicaoSimples :: Bool
+      , lpsPrevTokens ::  [TokenData]
     } deriving (Eq,Show)
 
 --type LinkerParserMonad m = ParsecT [Token] () (StateT LinkerParserState m)
@@ -107,7 +108,10 @@ skip :: LinkerParserMonad ()
 skip = lToken (const (Just ())) >> return ()
 
 lToken :: (TokenData -> Maybe a) -> LinkerParserMonad ((Line, Column, Int), a)
-lToken f = tokenPrim show (\ _ ((x,y),_) _ -> newPos "" x y) (\ ((x,y),d) -> fmap ((,) (x,y,tokenDataLength d)) (f d))
+lToken f = do
+  ((x,y,l,d),tok) <- tokenPrim show (\ _ ((x,y),_) _ -> newPos "" x y) (\ ((x,y),d) -> fmap ((,) (x,y,tokenDataLength d,d)) (f d))
+  modify $ \s -> s { lpsPrevTokens = d : lpsPrevTokens s }
+  return ((x,y,l),tok)
 
 anyTokenData :: LinkerParserMonad (Pos, TokenData)
 anyTokenData = lToken Just
@@ -262,3 +266,7 @@ hifen = fmap fst $ lToken f
   where f Hifen = return ()
         f _ = fail "expected hifen"
 
+prev_tokens :: LinkerParserMonad [TokenData]
+prev_tokens = lift $ do
+ s <- get
+ return $ lpsPrevTokens s

@@ -643,14 +643,17 @@ norma' = do
 
 constituicao1988 :: ParseCase2
 constituicao1988 = do
-  log'' $ "constituicao1988: starting"
+  log'' $ "constituicao1988: starting 1"
+  previous_tokens <- prev_tokens
+  if take 1 previous_tokens == [Palavra "de"] then  fail "preposição de" else return ()
+  log'' $ "constituicao1988: previous_tokens = " ++ show previous_tokens
   (inicio,fim) <- try (do i <- nomeProprio "Constituição" ; f <- option i (constanteI "federal") ; return (i,f)) <|>
                   (do i <- constanteI "constituicao" ; f <- constanteI "federal" ; return (i,f))
   return [(inicio,fim,U.selecionaConstituicao' (Just 1988) (Just (10,5)) Nothing Nothing)]
 
 constituicao ::  ParseCase2
 constituicao = do
-  log'' $ "constituicao: start "
+  log'' $ "constituicao: start 1"
   inicio <- nomeProprio "Constituição" <|> constanteI "constituicao"
   log'' $ "constituicao: looking for federal"
   fim <- option inicio (constanteI "federal" <|> constanteI "estadual")

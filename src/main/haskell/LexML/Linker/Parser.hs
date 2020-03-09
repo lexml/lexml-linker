@@ -38,7 +38,8 @@ iniState = LPS {
   lpsLogRegras = False,
   lpsLogOther = False,
   lpsLogMessages = [],
-  lpsConstituicaoSimples = False
+  lpsConstituicaoSimples = False,
+  lpsPrevTokens = []
 }
 
 {- doParse :: BaseM m => LinkerParserMonad m ()
