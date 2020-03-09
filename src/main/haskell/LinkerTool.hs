@@ -7,6 +7,7 @@ import Data.Data
 import Control.Monad
 import LexML.URN.Types hiding (Data)
 import LexML.URN.Parser
+import LexML.Linker (refContextoFederal)
 import LexML.Linker
 import LexML.Linker(linker)
 import System.Log.Logger
@@ -126,6 +127,7 @@ main = do
                 HXML -> IT_TAGGED
           , loDebugRegras = logaRegras args
           , loDebugTokens = logaTokens args
+          , loConstituicaoSimples = refContextoFederal contexto 
         }        
   let inputProc :: (LinkerOptions -> String -> IO ()) -> IO ()
       inputProc = case frase args of

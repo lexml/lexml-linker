@@ -52,3 +52,10 @@ substituiAutoridadeConvencionada ac (URNLexML local (Documento autoridade td des
 
 ehAutoridadeConvencionada (URNLexML _ (Documento (A_Convencionada _) _ _ ) _ _ _ ) = True
 ehAutoridadeConvencionada _ = False 
+
+urnHasContextoFederal (URNLexML (Local Brasil mdetlocal) (Documento aut _ _) _ _ _) =
+  case (mdetlocal,aut) of
+    (Nothing,_) -> True
+    (Just (DLJudiciario Nothing (LocalJudiciario RJ_Federal _)),_) -> True
+    _ -> False
+

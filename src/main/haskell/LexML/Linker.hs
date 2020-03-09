@@ -10,7 +10,8 @@ module LexML.Linker (
   InputType (..),
   OutputType (..),
   contextoFederal,
-  defaultLinkerOptions
+  defaultLinkerOptions,
+  refContextoFederal
  ) where
 
 import Text.HTML.TagSoup 
@@ -19,6 +20,7 @@ import Control.Monad.Except
 import LexML.Linker.LexerPrim (Token, LexError)
 import LexML.Render (render)
 import LexML.URN.Show
+import LexML.URN.Utils (urnHasContextoFederal)
 import LexML.Linker.Lexer (tokenStream)
 import LexML.Linker.Decorator (DecorationMap, decorate, makeTagsAHRef, makeTagsXLink)
 import LexML.Linker.Parser (LinkerParseError, parseReferencias2)
@@ -56,6 +58,11 @@ data RefContexto = RC_Nome NomeContexto | RC_URNLexML URNLexML | RC_AutoridadeLo
 
 data InputType = IT_TAGGED | IT_TEXT deriving (Eq,Ord,Show)
 data OutputType = OT_AHREF | OT_XLINK | OT_URNS deriving (Eq,Ord,Show)
+
+refContextoFederal :: RefContexto -> Bool
+refContextoFederal (RC_Nome "federal") = True
+refContextoFederal (RC_URNLexML urn) = urnHasContextoFederal urn
+refContextoFederal (RC_AutoridadeLocal _ _ ) = False -- (aut :: Autoridade) (mdet :: Maybe DetalhamentoLocal)) = False
 
 data LinkerOptions = LO {
     loContext :: RefContexto
