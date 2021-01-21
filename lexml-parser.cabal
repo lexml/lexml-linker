@@ -2,7 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                lexml-parser
-version:             1.4.4
+version:             1.4.5
 -- synopsis:
 -- description:
 license:             LGPL-2.1

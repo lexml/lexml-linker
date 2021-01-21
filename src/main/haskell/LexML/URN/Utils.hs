@@ -37,6 +37,7 @@ autoridadeConvencionada' (A_Normal [SJ_Instituicao (Instituicao (Nome nome)) _ _
   case nome of
     ["supremo","tribunal","federal"] -> Just AC_Federal
     ["senado","federal"] -> Just AC_Federal
+    ["camara","deputados"] -> Just AC_Federal
     ["tribunal","superior","trabalho"] -> Just AC_Federal
     ["tribunal","superior","eleitoral"] -> Just AC_Federal
     ["superior","tribunal","justica"] -> Just AC_Federal

@@ -889,6 +889,7 @@ parseQualAutoridadeExtenso = do
             (["do", "conselho", "deliberativo", "do", "fundo", "de", "amparo", "ao", "trabalhador"],
                   ["conselho","deliberativo","fundo","amparo","trabalhador"])
             , (["do","senado","federal"],["senado","federal"])
+            , (["da","camara","dos","deputados"],["camara","deputados"])
 {-          , (["do","tst"],["tribunal","superior","trabalho"]) 
           , (["do", "tribunal","superior","do","trabalho"],["tribunal","superior","trabalho"]) 
           , (["do", "stj"],["superior","tribunal","justica"]) 
