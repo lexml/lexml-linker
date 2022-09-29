@@ -10,7 +10,7 @@ Nesta seção aprsentamos exemplos de uso do Linker, em ambiente Linux, usando a
 Para tornar mais os exemplos mais sucintos, usaremos o seguinte *alias* do Bash:
 
 ```bash
-alias linker='docker run -i --rm lexmlbr/lexml-linker:1.4.5 /usr/bin/linkertool'
+alias linker='docker run -i --rm lexmlbr/lexml-linker:latest /usr/bin/linkertool'
 ```
 
 Primeiramente, para obter ajuda sobre as opções de comando do linker, basta usar a opção padrão `--help`
@@ -29,9 +29,8 @@ Common flags:
                                 padrão.
   -s --saida=ITEM               Arquivo de saída. Se omitido ou especificado
                                 "-", então será usada a saída padrão.
-  -t --text                     Texto de entrada sem mark-up
-     --hxml                     Texto de entrada com mark-up (XML/HTML)
-                                (default)
+  -t --text                     Texto de entrada sem mark-up (default)
+     --hxml                     Texto de entrada com mark-up (XML/HTML)                               
   -u --urns                     Gera lista de URNs reconhecidas (default)
      --html                     Gera HTML decorado com links para o resolver
                                 do LexML
