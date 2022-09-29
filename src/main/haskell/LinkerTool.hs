@@ -46,15 +46,15 @@ analise = Analise {
     , entrada = def &= typFile &= help "Arquivo de entrada. Se omitido ou especificado \"-\", então será usada a entrada padrão."
     , saida = def &= typFile &= help "Arquivo de saída. Se omitido ou especificado \"-\", então será usada a saída padrão."
     , tipoEntrada = enum [
-            TEXT &= help "Texto de entrada sem mark-up"
-          , HXML &= help "Texto de entrada com mark-up (XML/HTML) (default)"
+            TEXT &= help "Texto de entrada sem mark-up (default)" 
+          , HXML &= help "Texto de entrada com mark-up (XML/HTML)"
         ]   
     , tipoSaida = enum [
             URNs &= help "Gera lista de URNs reconhecidas (default)"
           , HTML &= help "Gera HTML decorado com links para o resolver do LexML"
           , XML  &= help "Gera XML decorado com as URNs reconhecidas"
         ]  
-    , enderecoResolver = "http://homologa.lexml.gov.br/urn/URNLEXML" &= opt "http://homologa.lexml.gov.br/urn/URNLEXML" &= help "Endereço do LexML Resolver, a string URNLEXML será substituída pela URN. Usado quando com o tipo de saída HTML"
+    , enderecoResolver = "https://www.lexml.gov.br/urn/URNLEXML" &= opt "https://www.lexml.gov.br/urn/URNLEXML" &= help "Endereço do LexML Resolver, a string URNLEXML será substituída pela URN. Usado quando com o tipo de saída HTML. Outro opção: 'https://normas.leg.br/?urn=URNLEXML'"
     , contexto = "federal" &= typ "URN" &= opt "federal" &= help "URN Lex ML de contexto. Podem ser usados os apelidos 'federal' e 'senado' para o contexto de leis federais e resoluções do senado, respectivamente, ou INLINE para ser lido alternadamente às linhas de entrada" 
     , logaRegras = False &= help "Loga a execução das regras"
     , logaTokens = False &= help "Loga a saída da análise léxica"

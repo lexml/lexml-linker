@@ -32,7 +32,7 @@ import LexML.Linker.RegrasSTF
 
 iniState = LPS {
   lpsDecorationMap = M.empty,
-  lpsResolverURL = "http://homologa.lexml.gov.br/urn/URNLEXML",
+  lpsResolverURL = "https://www.lexml.gov.br/urn/URNLEXML",
   lpsContexto = Nothing,
   lpsLogTokens = False,
   lpsLogRegras = False,
