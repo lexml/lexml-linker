@@ -942,6 +942,8 @@ tipoNormaDecreto = do
           do optional hifen
              constanteI "lei" <|> constanteI "leis"
              return ["lei"]
+        , do constanteI "legislativo" <|> constanteI "legislativos"
+             return ["legislativo"]
         , return []
       ]
 
