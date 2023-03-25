@@ -947,11 +947,24 @@ tipoNormaDecreto = do
         , return []
       ]
 
+contextoResolucao :: LinkerParserMonad Bool
+contextoResolucao = do
+  ctx <- getUrnContexto
+  case ctx of
+    Just (URNLexML _ (Documento _ (TipoDocumento1 (STD1_Norma (TipoNorma (Nome ["resolucao"]))) _) _) _ _ _) ->
+        return True
+    _ -> return False
+  
 tipoNorma :: LinkerParserMonad (Pos,Pos,[String],[QualificadorNorma],Bool,Bool)
 tipoNorma = choice [
     try tipoNormaLei,
-    try $ do p <- constantesI [ "resolução","resolucao","resoluções","resolucoes"]
-             return (p,p,["resolucao"],[],False,True), -- FIXME
+    (try $ do 
+      isResolucao <- contextoResolucao
+      if isResolucao then 
+         do p <- constantesI [ "resolução","resolucao","resoluções","resolucoes"] 
+            return (p,p,["resolucao"],[],False,True) -- FIXME
+      else fail "Não é resolução"
+    ),     
     try tipoNormaDecreto,
     try $ do p <- constanteI "emenda"
              f <- constanteI "constitucional"

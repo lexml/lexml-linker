@@ -19,7 +19,7 @@ import Prelude hiding (log)
 import LexML.Version
 import qualified Data.ByteString as BIO
 import Data.ByteString.UTF8 (toString, fromString)
-import System.IO
+import System.IO hiding (stdin,stdout)
 import LexML.MD5
 import GHC.IO.Handle.FD (stdin,stdout)
 
