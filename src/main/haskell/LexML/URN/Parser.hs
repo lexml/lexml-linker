@@ -21,8 +21,9 @@ option' t = option Nothing (t >>= return . Just)
 
 parseURNLexML :: String -> IO (Maybe URNLexML)
 parseURNLexML s = do
-  log $ "parseURNLexML: urn: " ++ s
-  case runIdentity $ runParserT pURNLexML defState "urn" s of
+  let s' = takeWhile (/= '@') s
+  log $ "parseURNLexML: urn: " ++ s'
+  case runIdentity $ runParserT pURNLexML defState "urn" s' of
     Left err -> do
       log $ "  error parsing urn: " ++ show err
       return $ Just defUrn
