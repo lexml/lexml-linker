@@ -26,7 +26,7 @@ import qualified LexML.Linker.Municipios as M
 import qualified LexML.Linker.Estados as E
 import System.Log.Logger
 import qualified Data.Set as S
-import Data.List(intercalate)
+import Data.List(intercalate,or)
 
 type SelectF = URNLexML -> URNLexML
 
@@ -710,32 +710,52 @@ apelidos = choice $ map try [
 apelidosSimples :: ParseCase2
 apelidosSimples = do
     log'' $ "apelidosSimples: iniciando"
-    r <- choice $ map (\ (l,u) -> try $
-                            do log'' $ "apelidosSimples: tentando: " ++ intercalate "," l
-                               (i,f) <- constantesI2 l
-                               log'' $ "apelidosSimples: consegui: " ++ intercalate "," l
-                               return [(i,f,u)]) listaApelidosSimples
+    r <- choice $ map (\ (l,c,u) -> try $
+                            do aplicavel <- c
+                               if aplicavel then do
+                                 log'' $ "apelidosSimples: tentando: " ++ intercalate "," l
+                                 (i,f) <- constantesI2 l
+                                 log'' $ "apelidosSimples: consegui: " ++ intercalate "," l
+                                 return [(i,f,u)]
+                               else fail $ "não aplicável nesse contexto: " ++ (show l)
+                        ) listaApelidosSimples
     log'' $ "apelidosSimples: ok"
     return r
   where
+    no_cond = return True
+    mAnd c1 c2 = do
+      r1 <- c1
+      if r1 then c2
+      else return False
+        
     listaApelidosSimples = [
-        (["regimento","interno","do","senado","federal"],\_ -> U.apelidoRegimentoInternoSenado)
-      , (["regimento","interno","do","senado"],\_ -> U.apelidoRegimentoInternoSenado)
-      , (["regimento","interno","da","câmara","dos","deputados"],\_ -> U.apelidoRegimentoInternoCamara)
-      , (["regimento","interno","da","câmara"],\_ -> U.apelidoRegimentoInternoCamara)
-      , (["regimento","interno","da","camara","dos","deputados"],\_ -> U.apelidoRegimentoInternoCamara)
-      , (["regimento","interno","da","camara"],\_ -> U.apelidoRegimentoInternoCamara)
-      , (["regimento","interno"],U.apelidoRegimentoInterno)
-      , (["regimento","comum","do","congresso","nacional"],\_ -> U.apelidoRegimentoComumCongresso)
-      , (["regimento","comum","do","congresso"],\_ -> U.apelidoRegimentoComumCongresso)
-      , (["regimento","comum"],\_ -> U.apelidoRegimentoComumCongresso)
-      , (["regulamento","administrativo","do","senado", "federal"],\_ -> U.apelidoRegulamentoAdministrativoSenado)
-      , (["regulamento","administrativo","do","senado"],\_ -> U.apelidoRegulamentoAdministrativoSenado)
-      , (["ato","das","disposicoes","constitucionais","transitorias"],\_ -> U.atoDisposicoesConstitucionaisTrans)
-      , (["ato","das","disposições","constitucionais","transitórias"],\_ -> U.atoDisposicoesConstitucionaisTrans)
+        (["regimento","interno","do","senado","federal"],no_cond,\_ -> U.apelidoRegimentoInternoSenado)
+      , (["regimento","interno","do","senado"],no_cond, \_ -> U.apelidoRegimentoInternoSenado)
+      , (["regimento","interno","da","câmara","dos","deputados"],no_cond,\_ -> U.apelidoRegimentoInternoCamara)
+      , (["regimento","interno","da","câmara"],no_cond,\_ -> U.apelidoRegimentoInternoCamara)
+      , (["regimento","interno","da","camara","dos","deputados"],no_cond,\_ -> U.apelidoRegimentoInternoCamara)
+      , (["regimento","interno","da","camara"],no_cond,\_ -> U.apelidoRegimentoInternoCamara)
+      , (["regimento","interno"],contextoResolucao `mAnd` autoridadeEm [["senado","federal"],["camara","deputados"]],U.apelidoRegimentoInterno)
+      , (["regimento","comum","do","congresso","nacional"],no_cond,\_ -> U.apelidoRegimentoComumCongresso)
+      , (["regimento","comum","do","congresso"],no_cond,\_ -> U.apelidoRegimentoComumCongresso)
+      , (["regimento","comum"],contextoResolucao `mAnd` autoridadeEm [["congresso","nacional"]],\_ -> U.apelidoRegimentoComumCongresso)
+      , (["regulamento","administrativo","do","senado", "federal"],no_cond,\_ -> U.apelidoRegulamentoAdministrativoSenado)
+      , (["regulamento","administrativo","do","senado"],no_cond,\_ -> U.apelidoRegulamentoAdministrativoSenado)
+      , (["ato","das","disposicoes","constitucionais","transitorias"],no_cond,\_ -> U.atoDisposicoesConstitucionaisTrans)
+      , (["ato","das","disposições","constitucionais","transitórias"],no_cond,\_ -> U.atoDisposicoesConstitucionaisTrans)     
       ]
 
-
+autNormalInst :: [String] -> Autoridade -> Bool  
+autNormalInst inst aut  =
+   case aut of A_Normal [SJ_Instituicao (Instituicao (Nome x)) _ _] -> x == inst
+               _ -> False
+autoridadeEm l = do
+  ctx <- getUrnContexto
+  case ctx of
+    Just (URNLexML _ (Documento aut _ _) _ _ _) ->
+        return $ or (map (\inst -> autNormalInst inst aut) l)
+    _ -> return False
+      
 normaExtenso ::  ParseCase2
 normaExtenso = do
   log'' $ "normaExtenso: start"
