@@ -38,9 +38,10 @@ type NumeroParser = LinkerParserMonad (Pos,Pos,[Integer])
 data ComponenteParseInfo = CPI {        
       descricaoComp :: String,
       levelComp :: Int,
-      nomesCompPlural :: [NomeComponente],      
+      nomesCompPlural :: [NomeComponente],        
       artigosPlural :: [String],
       nomesCompSingular :: [NomeComponente],
+      nomesSemNumero :: [NomeComponente],
       artigosSingular :: [String],
       numerosComp :: [NumeroParser],
       numerosEspecificos :: [NumeroParser],
@@ -51,14 +52,14 @@ data ComponenteParseInfo = CPI {
       selectUnico :: Maybe ([String],SelectF)
   }
 
-log ::  String -> LinkerParserMonad ()
+log ::        String -> LinkerParserMonad ()
 log = logRegras -- msg = return () -- lift $ tell $ msg ++ "\n"
 
 log' :: ComponenteParseInfo -> String -> String -> LinkerParserMonad ()
 log' cpi wh msg = do
   lh <- try (eof >> return Nothing) <|> (lookAhead anyToken >>= return . Just)
   let indent = replicate ((levelComp cpi) * 2) ' '
-  log $ indent ++ wh ++ "[" ++  descricaoComp cpi ++ "]: " ++ msg ++ " (lh: " ++ show lh ++ ")" 
+  log $ indent ++ wh ++ "[" ++        descricaoComp cpi ++ "]: " ++ msg ++ " (lh: " ++ show lh ++ ")" 
 
 log'' :: String -> LinkerParserMonad ()
 log'' msg = do
@@ -71,6 +72,7 @@ cpiFeminino = CPI {
     , nomesCompPlural = []
     , artigosPlural = ["as"]
     , nomesCompSingular = []
+    , nomesSemNumero = []
     , artigosSingular = ["a"]
     , numerosComp = []
     , numerosEspecificos = []
@@ -87,6 +89,7 @@ cpiMasculino = CPI {
     , nomesCompPlural = []
     , artigosPlural = ["os"]
     , nomesCompSingular = []
+    , nomesSemNumero = []
     , artigosSingular = ["o"]
     , numerosComp = []
     , numerosEspecificos = []
@@ -139,7 +142,8 @@ compParagrafo = cpiMasculino {
       descricaoComp = "paragrafo"
     , levelComp = 1
     , nomesCompPlural = [NC_Simple "parágrafos", NC_Simple "paragrafos", NC_Abrev "pars", NC_Simbolo Paragrafos, NC_Outro parseParagrafos]
-    , nomesCompSingular = [NC_Outro caput, NC_Simple "parágrafo", NC_Simple "paragrafo", NC_Abrev "par", NC_Simbolo Paragrafo]
+    , nomesCompSingular = [NC_Simple "parágrafo", NC_Simple "paragrafo", NC_Abrev "par", NC_Simbolo Paragrafo]
+    , nomesSemNumero = [NC_Outro caput]
     , numerosComp = [variosNumeros' numeroOrdinal, variosNumeros' numeroArabico]
     , numerosEspecificos = [variosNumeros' numeroOrdinal, variosNumeros' (numeroArabicoMaiorQue 10)]
     , subComponente = Just compInciso
@@ -162,7 +166,9 @@ compArtigo = cpiMasculino {
 
 caput :: LinkerParserMonad (Pos,Maybe SelectF)
 caput = do
+  log "caput: inicio"
   inicio <- constanteI "caput" <|> (constanteI "cpt" >>= \p -> optional ponto >> return p)
+  log $ "caput: fim: inicio = " ++ show inicio
   return (inicio, Just U.selecionaCaput)
 
 complementoToInteger :: String -> Integer
@@ -173,13 +179,13 @@ complementoToInteger = foldl (\n c -> n * (1 + fromIntegral (fromEnum 'Z' - from
 
 numeros ::  SimpleNumeroParser -> NumeroParser
 numeros m = do
-  log'' $ "                   numeros: starting"
+  log'' $ "                      numeros: starting"
   (i,f,n) <- m
   (comp,ff) <- try $ option (Nothing,f) $ do
     hifen
     (pos,p) <- anyPalavra
     return $ (Just $ complementoToInteger p + 1,pos)
-  log'' $ "                   numeros: result: " ++ show (i,ff,n)
+  log'' $ "                      numeros: result: " ++ show (i,ff,n)
   return (i,ff,n : maybeToList comp)
 
 
@@ -200,43 +206,43 @@ variosNumeros primeiro outros = do
 {-
 listaDe :: LinkerParserMonad [a] -> LinkerParserMonad [a]
 listaDe m = do
-  log'' "          listaDe: start"
+  log'' "           listaDe: start"
   res1 <- m
-  log'' "          listaDe: res1 obtained"
+  log'' "           listaDe: res1 obtained"
   resl <- try (parseSeparator >>= sepBy m) <|> return []
-  log'' "          listaDe: resl obtained. returning."
+  log'' "           listaDe: resl obtained. returning."
   return $ concat $ res1:resl
 -}
 listaDe :: LinkerParserMonad [a] -> LinkerParserMonad [a]
 listaDe m = do
-  log'' $ "        listaDe: starting"
+  log'' $ "           listaDe: starting"
   res1 <- m
-  log'' "          listaDe: res1 obtained"
+  log'' "           listaDe: res1 obtained"
   (psep,resl) <- option (parseSeparator >> return (),[]) $ try $ do
-    log'' $ "          listaDe(resl): starting"
+    log'' $ "               listaDe(resl): starting"
     sep <- parseSeparator
-    log'' $ "          listaDe(resl): sep parsed"
+    log'' $ "               listaDe(resl): sep parsed"
     resl <- sepBy1 (try m) sep
-    log'' $ "          listaDe(resl): resl parsed"
+    log'' $ "               listaDe(resl): resl parsed"
     return (sep,concat resl)
-  log'' $ "          listaDe: resl parsed"
+  log'' $ "             listaDe: resl parsed"
   resl' <- option resl $ try $ do
               optional psep
-              log'' $ "          listaDe: checking for \"e\""
+              log'' $ "                 listaDe: checking for \"e\""
               constanteI "e"
-              log'' $ "          listaDe: \"e\" is present"
+              log'' $ "                 listaDe: \"e\" is present"
               r <- m 
-              log'' $ "          listaDe: m parsed after \"e\""
+              log'' $ "                 listaDe: m parsed after \"e\""
               return (resl ++ r)
   return (res1 ++ resl')
 
 {-- listaDe' :: LinkerParserMonad (s,[a]) -> (a -> LinkerParserMonad [a]) -> LinkerParserMonad [a]
 listaDe' s m = do
-  log'' "          listaDe: start"
+  log'' "           listaDe: start"
   res1 <- m s
-  log'' "          listaDe: res1 obtained"
+  log'' "           listaDe: res1 obtained"
   resl <- try (parseSeparator >>= sepBy m) <|> return []
-  log'' "          listaDe: resl obtained. returning."
+  log'' "           listaDe: resl obtained. returning."
   return $ concat $ res1:resl --}
 
 parseComponenteDireto ::  ComponenteParseInfo -> ParseCase2
@@ -276,20 +282,7 @@ parseComponenteDireto' reqNome cpi = do
           try $ do log "parseComponenteDiretoSingular(preposicao)" "start"
                    parsePreposicao cpi
                    log "parseComponenteDiretoSingular(preposicao)" "end"])
-      (minicio, mselect) <- (if reqNome then id else option (Nothing,Nothing)) (parseNomes (nomesCompSingular cpi) >>= \ (a,b) -> return (Just a,b))
-      log "parseComponenteDiretoSingular" $ "minicio = " ++ show minicio
-      let mUnico = selectUnico cpi
-      let unicoParser = \(labels,sel) -> do
-             log' cpi "parseComponenteSingular1"  $ "Unico: start labels = " ++ show labels
-             p1 <- choice (map (try . constanteI) labels)
-             log' cpi "parseComponenteSingular1" "Unico: succeeded"
-             return (p1,p1,(Nothing,sel)) 
-      let mu = (maybeToList $ fmap unicoParser mUnico) :: [LinkerParserMonad (Pos,Pos,(Maybe [Integer],SelectF))]
-      let np = (\p -> try p >>= \(p1,p2,num) -> return (p1,p2,(Just num,sc num))) :: NumeroParser -> LinkerParserMonad (Pos,Pos,(Maybe [Integer],SelectF))
-
-      (inicio2,fim,(num,sc')) <- choice (mu ++ (map np $ numerosEspecificos cpi))
-      log "parseComponenteDiretoSingular" $ "(inicio2,fim,num) = " ++ show (inicio2,fim,num)
-      let inicio = maybe inicio2 id minicio
+      (inicio,fim,selector) <- try compSingularComNumero <|> compSingularSemNumero
       subcomps <- option [] $ try $ case subComponente cpi of
           Nothing -> return []
           Just subc -> do
@@ -298,14 +291,34 @@ parseComponenteDireto' reqNome cpi = do
             log "parseComponenteDiretorSingular" $ "parsing for subcomponent"
             parseComponenteDireto' True subc
       case subcomps of
-        [] -> return [(inicio,fim,sc')]
-        (_,fim',sf):r -> return $ (inicio,fim',sf . sc') : [(i,f,sf . sc') | (i,f,sf) <- r]
-        
+        [] -> return [(inicio,fim,selector)]
+        (_,fim',sf):r -> return $ (inicio,fim',sf . selector) : [(i,f,sf . selector) | (i,f,sf) <- r]
+    
+    compSingularSemNumero = do
+      (s,msel) <- parseNomes $ nomesSemNumero cpi
+      return (s,s,maybe id id msel)
+
+    compSingularComNumero = 
+        do (minicio, mselect) <- (if reqNome then id else option (Nothing,Nothing)) (parseNomes (nomesCompSingular cpi) >>= \ (a,b) -> return (Just a,b))
+           log "parseComponenteDiretoSingular" $ "minicio = " ++ show minicio
+           let mUnico = selectUnico cpi
+           let unicoParser = \(labels,sel) -> do
+                log' cpi "parseComponenteSingular1"  $ "Unico: start labels = " ++ show labels
+                p1 <- choice (map (try . constanteI) labels)
+                log' cpi "parseComponenteSingular1" "Unico: succeeded"
+                return (p1,p1,(Nothing,sel)) 
+           let mu = (maybeToList $ fmap unicoParser mUnico) :: [LinkerParserMonad (Pos,Pos,(Maybe [Integer],SelectF))]
+           let np = (\p -> try p >>= \(p1,p2,num) -> return (p1,p2,(Just num,sc num))) :: NumeroParser -> LinkerParserMonad (Pos,Pos,(Maybe [Integer],SelectF))
+           (inicio2,fim,(num,sc')) <- choice (mu ++ (map np $ numerosEspecificos cpi))
+           log "parseComponenteDiretoSingular" $ "(inicio2,fim,num) = " ++ show (inicio2,fim,num)
+           let inicio = maybe inicio2 id minicio
+           return (inicio,fim,sc')
+
     parseComponenteDiretoPlural = do
       log "parseComponenteDiretoPlural" "starting"
       optional (try $ choice $ map constanteI $ artigosPlural cpi ++ ["nos","nas"])
       optional $ try (constanteI "termos" >> choice (map constanteI $ preposicoes cpi ++ artigosPlural cpi) )
-      (inicio, mselect) <- parseNomes $ nomesCompPlural cpi             
+      (inicio, mselect) <- parseNomes $ nomesCompPlural cpi                
       log "parseComponenteDiretoPlural" "nome parsed"
       (_,fim,u):r <- parseComponenteDireto' False cpi
       log "parseComponenteDiretoPlural" "rest parsed"
@@ -320,7 +333,7 @@ parseComponente cpi = do
 parseComponente1 ::  ComponenteParseInfo -> ParseCase2
 parseComponente1 cpi = parseComponentePlural2 cpi
 --parseComponente1 cpi = try (log' cpi "parseComponente1" "starting A" >> parseComponentePlural1 cpi) 
---                      <|> (log' cpi "parseComponente1" "starting B" >> parseComponentePlural2 cpi)
+--                        <|> (log' cpi "parseComponente1" "starting B" >> parseComponentePlural2 cpi)
 
 parseComponentePlural1 ::  ComponenteParseInfo -> ParseCase2
 parseComponentePlural1 cpi@(CPI { nomesCompPlural = nomesCompPlural,
@@ -376,11 +389,12 @@ parseComponenteSingular cpi = combineM' subComponente' (
            parseComponenteSingular1 cpi
            ) (selectDefault cpi)
   where
-    subComponente' = maybe (log' cpi "parseComponenteSingular"  "no default" >> return []) parseComponente $ subComponente cpi
+    subComponente' = maybe (log' cpi "parseComponenteSingular"        "no default" >> return []) parseComponente $ subComponente cpi
     
 
 parseComponenteSingular1 :: ComponenteParseInfo -> LinkerParserMonad SingleParseCaseResult2
 parseComponenteSingular1 cpi@(CPI { nomesCompSingular = nomesCompSingular,
+                                    nomesSemNumero = nomesSemNumero,
                                artigosSingular = artigosSingular,
                                numerosComp = numerosComp,
                                selectComp = selectComp,
@@ -388,8 +402,8 @@ parseComponenteSingular1 cpi@(CPI { nomesCompSingular = nomesCompSingular,
     log' cpi "parseComponenteSingular1" "start"
     optional $ choice $ map constanteI $ artigosSingular ++ ["no", "na"]
     log' cpi "parseComponenteSingular1" "artigo parsed"
-    (inicio, mselect) <- parseNomes nomesCompSingular
-    log' cpi "parseComponenteSingular1" $ "nome parsed:  " ++ show inicio
+    (inicio, mselect) <- parseNomes (nomesCompSingular ++ nomesSemNumero)
+    log' cpi "parseComponenteSingular1" $ "nome parsed:  " ++ show inicio ++ ", mselect is Just: " ++ show (isJust mselect)
     case mselect of
       Just s -> return (inicio,inicio,s)
       Nothing -> do
@@ -411,14 +425,14 @@ parsePreposicao (CPI { preposicoes = preposicoes }) = (parseSeparator >> optiona
 
 intervalo :: [NumeroParser] -> LinkerParserMonad ([(Pos,Pos,[Integer])],NumeroParser)
 intervalo numeros = do
-  log'' $ "              intervalo: starting"
+  log'' $ "                 intervalo: starting"
   (num1,numero) <- choice [ try (numero >>= \r -> return (r ,numero)) | numero <- numeros ]
-  log'' $ "              intervalo: num1 = " ++ show num1
+  log'' $ "                 intervalo: num1 = " ++ show num1
   numl <- option [num1] $ try $ do
       constanteI "a"
-      log'' $ "              intervalo: a parsed"
+      log'' $ "                     intervalo: a parsed"
       num2 <- numero
-      log'' $ "              intervalo: num2 = " ++ show num2
+      log'' $ "                     intervalo: num2 = " ++ show num2
       return [num1,num2]
   return (numl,numero)
 
@@ -433,19 +447,19 @@ intervalo' numero = do
 
 parseListaNumeros :: [NumeroParser] -> LinkerParserMonad [(Pos,Pos,[Integer])]
 parseListaNumeros numeros = do
-  log'' $ "        parseListaNumeros: starting"
+  log'' $ "           parseListaNumeros: starting"
 --  (num1,numero) <- choice [ try (numero >>= \r -> return (r ,numero)) | numero <- numeros ]
   (nums1,numero) <- intervalo numeros
-  log'' $ "        parseListaNumeros: num1 parsed : " ++ show nums1
+  log'' $ "           parseListaNumeros: num1 parsed : " ++ show nums1
   numl <- option [] $ try (do
-    log'' $ "          parseListaNumeros(numl): starting"
+    log'' $ "               parseListaNumeros(numl): starting"
     sep <- parseSeparator
-    log'' $ "          parseListaNumeros(numl): sep parsed"
+    log'' $ "               parseListaNumeros(numl): sep parsed"
     numl <- sepBy (intervalo' numero) sep
-    log'' $ "          parseListaNumeros(numl): numl parsed: " ++ show numl
+    log'' $ "               parseListaNumeros(numl): numl parsed: " ++ show numl
     optional sep
     return $ concat numl)
-  log'' $ "          parseListaNumeros: numl parsed"
+  log'' $ "             parseListaNumeros: numl parsed"
   numl' <- option numl (try (constanteI "e" >> (try (intervalo' numero >>= \r -> return $ (numl ++ r)) <|>
                                                 (constanteI "seguintes" >> return numl) )))
   return (nums1 ++ numl')
@@ -481,12 +495,12 @@ numero' = tokenPrim show (\ _ ((x,y),_) _ -> newPos "" x y) f
 
 numero :: LinkerParserMonad ((Line,Column,Int),(Integer,String))
 numero = try $ do
-  log'' $ "                   numero: parsing"
+  log'' $ "                      numero: parsing"
   (p,td) <- anyTokenData
-  log'' $ "                   numero: next token: " ++ show (p,td)
+  log'' $ "                      numero: next token: " ++ show (p,td)
   case td of
-    Numero n s -> log'' "                        numero: returning"  >> return (p,(n,s))
-    _ -> log'' ("not a number:  " ++ show (p,td)) >> fail "not a number"
+    Numero n s -> log'' "                         numero: returning"  >> return (p,(n,s))
+    _ -> log'' ("not a number:        " ++ show (p,td)) >> fail "not a number"
 --lToken numero'
 --  where
 --    numero' (Numero n s) = log "numero found" >> return (n,s)
@@ -504,11 +518,11 @@ numeroArabico =
        (inicio,(_,s)) <- numero
        --log $ "             numeroArabico: numero parsed: " ++ show (inicio,s)
        l <- many $ try $ do
-              --log $ "               numeroArabico: many: starting"
+              --log $ "                      numeroArabico: many: starting"
               ponto
-              --log $ "               numeroArabico: many: ponto parsed"
+              --log $ "                      numeroArabico: many: ponto parsed"
               r <- digitos 3
-              --log $ "               numeroArabico: many: digitos parsed"
+              --log $ "                      numeroArabico: many: digitos parsed"
               return r
        let (posl,sl) = unzip l
        let num = read $ concat $ s : sl
@@ -671,7 +685,7 @@ constituicao = do
 leiApelido ::  ParseCase2
 leiApelido = try leiApelido1 <|> leiApelido2
 
-leiApelido1 ::  ParseCase2
+leiApelido1 ::        ParseCase2
 leiApelido1 = do
     inicio1 <- try (fmap Just (constanteI "antigo")) <|> return Nothing
     inicio <- constantesI ["código", "codigo"] >>= \p -> return $ maybe p id inicio1
@@ -687,7 +701,7 @@ leiApelido1 = do
         ("penal")
       ]
 
-leiApelido2 ::  ParseCase2
+leiApelido2 ::        ParseCase2
 leiApelido2 = try clt1 <|> clt2
   where
     clt1 = do
@@ -746,7 +760,7 @@ apelidosSimples = do
       ]
 
 autNormalInst :: [String] -> Autoridade -> Bool  
-autNormalInst inst aut  =
+autNormalInst inst aut        =
    case aut of A_Normal [SJ_Instituicao (Instituicao (Nome x)) _ _] -> x == inst
                _ -> False
 autoridadeEm l = do
@@ -888,7 +902,7 @@ parseQualEstado = try $ do
     log'' $ "parseQualEstado: estado found: " ++ show estado
     return (maybe inicio2 id minicio,fim,NLD_Estado estado)
 
-parseQualAutoridade ::  QualificadorParser
+parseQualAutoridade ::        QualificadorParser
 parseQualAutoridade = do
   try parseQualAutoridadeHifen <|> parseQualAutoridadeExtenso
 
@@ -910,7 +924,7 @@ parseQualAutoridadeExtenso = do
                   ["conselho","deliberativo","fundo","amparo","trabalhador"])
             , (["do","senado","federal"],["senado","federal"])
             , (["da","camara","dos","deputados"],["camara","deputados"])
-{-          , (["do","tst"],["tribunal","superior","trabalho"]) 
+{-            , (["do","tst"],["tribunal","superior","trabalho"]) 
           , (["do", "tribunal","superior","do","trabalho"],["tribunal","superior","trabalho"]) 
           , (["do", "stj"],["superior","tribunal","justica"]) 
           , (["do", "superior","tribunal","de","justica"],["superior","tribunal","justica"]) 
@@ -984,7 +998,7 @@ tipoNorma = choice [
          do p <- constantesI [ "resolução","resolucao","resoluções","resolucoes"] 
             return (p,p,["resolucao"],[],False,True) -- FIXME
       else fail "Não é resolução"
-    ),     
+    ),           
     try tipoNormaDecreto,
     try $ do p <- constanteI "emenda"
              f <- constanteI "constitucional"
