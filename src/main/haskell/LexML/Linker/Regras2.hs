@@ -24,7 +24,6 @@ import LexML.Linker.ParserBase
 import Prelude hiding (log)
 import qualified LexML.Linker.Municipios as M
 import qualified LexML.Linker.Estados as E
-import System.Log.Logger
 import qualified Data.Set as S
 import Data.List(intercalate,or)
 

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>LexML Linker WASM demo</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: system-ui, sans-serif;
+      }
+
+      body {
+        box-sizing: border-box;
+        max-width: 60rem;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      textarea {
+        box-sizing: border-box;
+        width: 100%;
+        min-height: 10rem;
+        padding: 0.75rem;
+        font: inherit;
+      }
+
+      button {
+        margin: 1rem 0;
+        padding: 0.5rem 1.25rem;
+        font: inherit;
+      }
+
+      #status {
+        margin-left: 0.75rem;
+      }
+
+      #output {
+        min-height: 4rem;
+        padding: 1rem;
+        border: 1px solid currentColor;
+        border-radius: 0.25rem;
+      }
+
+      #output.error {
+        color: #b00020;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>LexML Linker WASM demo</h1>
+
+    <label for="input">Text to link</label>
+    <textarea id="input">Os incisos I e III do § 3º do art. 8º da Lei nº 12.527, de 18 de novembro de 2011.</textarea>
+
+    <div>
+      <button id="parse" type="button" disabled>Parse</button>
+      <span id="status" role="status">Loading linker…</span>
+    </div>
+
+    <h2>Linked XHTML fragment</h2>
+    <div id="output"></div>
+
+    <script type="module">
+      import makeJsffiImports from "./lexml-linker.mjs";
+      import {
+        ConsoleStdout,
+        Directory,
+        File,
+        OpenFile,
+        PreopenDirectory,
+        WASI,
+      } from "https://esm.sh/gh/haskell-wasm/browser_wasi_shim";
+
+      const input = document.querySelector("#input");
+      const parseButton = document.querySelector("#parse");
+      const status = document.querySelector("#status");
+      const output = document.querySelector("#output");
+
+      try {
+        const wasi = new WASI(
+          [],
+          [],
+          [
+            new OpenFile(new File(new Uint8Array(), { readonly: true })),
+            ConsoleStdout.lineBuffered((message) => console.log(message)),
+            ConsoleStdout.lineBuffered((message) => console.error(message)),
+            new PreopenDirectory("/", [["tmp", new Directory([])]]),
+          ],
+          { debug: false },
+        );
+
+        const wasmExports = {};
+        const { instance } = await WebAssembly.instantiateStreaming(
+          fetch("./lexml-linker.wasm"),
+          {
+            ghc_wasm_jsffi: makeJsffiImports(wasmExports),
+            wasi_snapshot_preview1: wasi.wasiImport,
+          },
+        );
+
+        Object.assign(wasmExports, instance.exports);
+        wasi.initialize(instance);
+
+        parseButton.disabled = false;
+        status.textContent = "Ready";
+
+        parseButton.addEventListener("click", async () => {
+          parseButton.disabled = true;
+          status.textContent = "Parsing…";
+          output.classList.remove("error");
+
+          try {
+            const responseJson = await wasmExports.lexml_link(
+              JSON.stringify({
+                input: input.value,
+                inputType: "text",
+                outputType: "html",
+                context: "federal",
+                resolverUrl: "https://www.lexml.gov.br/urn/URNLEXML",
+              }),
+            );
+            const response = JSON.parse(responseJson);
+
+            if (!response.ok) {
+              throw new Error(response.error);
+            }
+
+            output.innerHTML = response.content;
+            status.textContent = response.partial ? "Partial result" : "Done";
+          } catch (error) {
+            output.classList.add("error");
+            output.textContent = String(error);
+            status.textContent = "Failed";
+          } finally {
+            parseButton.disabled = false;
+          }
+        });
+      } catch (error) {
+        output.classList.add("error");
+        output.textContent = String(error);
+        status.textContent = "Failed to load linker";
+      }
+    </script>
+  </body>
+</html>

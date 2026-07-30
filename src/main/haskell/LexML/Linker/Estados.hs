@@ -10,7 +10,6 @@ import Control.Monad.Trans
 import LexML.URN.Atalhos
 import LexML.Linker.LexerPrim
 import Text.Parsec
-import System.Log.Logger
 import Prelude hiding (log)
 
 -- log :: String -> LinkerParserMonad ()

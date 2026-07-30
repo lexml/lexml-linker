@@ -1,0 +1,7 @@
+packages: .
+
+optimization: 2
+tests: False
+benchmarks: False
+documentation: False
+write-ghc-environment-files: never

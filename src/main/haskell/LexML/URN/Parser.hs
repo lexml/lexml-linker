@@ -11,11 +11,11 @@ import Text.Parsec.Combinator
 import LexML.Linker.Estados (estadosNormais)
 import qualified Data.Set as S
 import Control.Monad.Identity
-import System.Log.Logger
-import Prelude hiding (log)
 import Data.Char
+import Prelude hiding (log)
 
-log = debugM "LexML.URN.Parser"
+log :: String -> IO ()
+log _ = pure ()
 
 option' t = option Nothing (t >>= return . Just)
 

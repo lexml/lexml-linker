@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>LexML Linker rich-text WASM demo</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css"
+      rel="stylesheet"
+    >
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: system-ui, sans-serif;
+      }
+
+      body {
+        box-sizing: border-box;
+        max-width: 60rem;
+        margin: 0 auto;
+        padding: 2rem;
+        color: #202124;
+        background: #fff;
+      }
+
+      #editor {
+        min-height: 14rem;
+        font-size: 1rem;
+      }
+
+      #status {
+        min-height: 1.5rem;
+        margin: 0.75rem 0;
+        color: #5f6368;
+      }
+
+      #status[data-state="working"] {
+        color: #8a4b00;
+      }
+
+      #status[data-state="error"] {
+        color: #b00020;
+      }
+
+      #urn-list {
+        padding-left: 1.5rem;
+      }
+
+      #urn-list ul {
+        margin-top: 0.35rem;
+        padding-left: 1.5rem;
+      }
+
+      #urn-list li {
+        margin: 0.25rem 0;
+      }
+
+      #urn-list code {
+        overflow-wrap: anywhere;
+      }
+
+      .urn-metadata {
+        display: grid;
+        grid-template-columns: max-content 1fr;
+        gap: 0.25rem 0.75rem;
+        margin: 0.5rem 0 0.75rem 1rem;
+      }
+
+      .urn-metadata dt {
+        font-weight: 600;
+      }
+
+      .urn-metadata dd {
+        margin: 0;
+      }
+
+      .urn-aliases {
+        margin: 0;
+        padding-left: 1.25rem;
+      }
+
+      .urn-metadata-status {
+        margin: 0.5rem 0 0.75rem 1rem;
+        color: #5f6368;
+      }
+
+      .urn-metadata-status.error {
+        color: #b00020;
+      }
+
+      #urn-list .empty {
+        color: #5f6368;
+      }
+
+      .ql-editor a {
+        color: #0057b8;
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>LexML Linker rich-text demo</h1>
+    <p>
+      Edit or format the document. After 500 ms without changes, the linker
+      enriches legal references in place.
+    </p>
+
+    <div id="editor">
+      <p>
+        Os <strong>incisos I e III</strong> do § 3º do art. 8º da Lei nº
+        12.527, de 18 de novembro de 2011.
+      </p>
+    </div>
+    <div id="status" role="status" aria-live="polite">Loading linker…</div>
+
+    <section aria-labelledby="urn-heading">
+      <h2 id="urn-heading">Identified URNs</h2>
+      <ul id="urn-list" aria-live="polite">
+        <li class="empty">No URNs identified.</li>
+      </ul>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+    <script type="module">
+      import makeJsffiImports from "./lexml-linker.mjs";
+      import {
+        ConsoleStdout,
+        Directory,
+        File,
+        OpenFile,
+        PreopenDirectory,
+        WASI,
+      } from "https://esm.sh/gh/haskell-wasm/browser_wasi_shim";
+
+      const status = document.querySelector("#status");
+      const urnList = document.querySelector("#urn-list");
+      const quill = new Quill("#editor", {
+        theme: "snow",
+        modules: {
+          toolbar: [
+            [{ header: [1, 2, false] }],
+            ["bold", "italic", "underline"],
+            [{ list: "ordered" }, { list: "bullet" }],
+            ["link", "clean"],
+          ],
+        },
+      });
+      quill.disable();
+
+      let debounceTimer;
+      let revision = 0;
+      let urnListRevision = 0;
+      let wasmExports;
+      const metadataCache = new Map();
+
+      function setStatus(message, state = "idle") {
+        status.textContent = message;
+        status.dataset.state = state;
+      }
+
+      function extractUrn(href) {
+        const start = href.indexOf("urn:lex:");
+        return start === -1 ? null : href.slice(start);
+      }
+
+      function fieldValue(row) {
+        return row
+          .querySelector(".text-left")
+          ?.textContent.replace(/\s+/g, " ")
+          .trim();
+      }
+
+      function parseLexmlMetadata(html) {
+        const page = new DOMParser().parseFromString(html, "text/html");
+        const aliases = [];
+        let summary = null;
+
+        page.querySelectorAll(".list-group-item .row").forEach((row) => {
+          const label = row.querySelector("strong")?.textContent.trim();
+          const value = fieldValue(row);
+          if (!value) {
+            return;
+          }
+
+          if (label === "Apelido") {
+            aliases.push(value);
+          } else if (label === "Ementa" && summary === null) {
+            summary = value;
+          }
+        });
+
+        return { aliases, summary };
+      }
+
+      function fetchLexmlMetadata(documentUrn) {
+        if (!metadataCache.has(documentUrn)) {
+          const request = fetch(
+            `/lexml-metadata?urn=${encodeURIComponent(documentUrn)}`,
+          )
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+              }
+              return response.text();
+            })
+            .then(parseLexmlMetadata)
+            .catch((error) => {
+              metadataCache.delete(documentUrn);
+              throw error;
+            });
+          metadataCache.set(documentUrn, request);
+        }
+        return metadataCache.get(documentUrn);
+      }
+
+      function addMetadataField(metadata, label, value) {
+        const term = document.createElement("dt");
+        term.textContent = label;
+        const description = document.createElement("dd");
+        description.append(value);
+        metadata.append(term, description);
+      }
+
+      function showMetadata(container, { aliases, summary }) {
+        container.replaceChildren();
+        if (aliases.length === 0 && !summary) {
+          container.textContent = "No Apelido or Ementa metadata available.";
+          return;
+        }
+
+        const metadata = document.createElement("dl");
+        metadata.className = "urn-metadata";
+        if (aliases.length > 0) {
+          const aliasList = document.createElement("ul");
+          aliasList.className = "urn-aliases";
+          aliases.forEach((alias) => {
+            const item = document.createElement("li");
+            item.textContent = alias;
+            aliasList.append(item);
+          });
+          addMetadataField(metadata, "Apelido", aliasList);
+        }
+        if (summary) {
+          addMetadataField(metadata, "Ementa", summary);
+        }
+        container.replaceWith(metadata);
+      }
+
+      async function loadMetadata(documentUrn, container, listRevision) {
+        try {
+          const metadata = await fetchLexmlMetadata(documentUrn);
+          if (
+            listRevision === urnListRevision &&
+            container.isConnected
+          ) {
+            showMetadata(container, metadata);
+          }
+        } catch (error) {
+          if (
+            listRevision === urnListRevision &&
+            container.isConnected
+          ) {
+            container.classList.add("error");
+            container.textContent =
+              `Metadata unavailable: ${String(error)}`;
+          }
+        }
+      }
+
+      function renderUrns(linkedHtml) {
+        const listRevision = ++urnListRevision;
+        const linked = document.createElement("template");
+        linked.innerHTML = linkedHtml;
+        const groups = new Map();
+
+        linked.content.querySelectorAll("a[href]").forEach((anchor) => {
+          const urn = extractUrn(anchor.getAttribute("href"));
+          if (!urn) {
+            return;
+          }
+
+          const separator = urn.indexOf("!");
+          const documentUrn =
+            separator === -1 ? urn : urn.slice(0, separator);
+          const fragment =
+            separator === -1 ? null : urn.slice(separator + 1);
+
+          if (!groups.has(documentUrn)) {
+            groups.set(documentUrn, new Set());
+          }
+          if (fragment !== null) {
+            groups.get(documentUrn).add(fragment);
+          }
+        });
+
+        urnList.replaceChildren();
+        if (groups.size === 0) {
+          const empty = document.createElement("li");
+          empty.className = "empty";
+          empty.textContent = "No URNs identified.";
+          urnList.append(empty);
+          return;
+        }
+
+        [...groups.entries()]
+          .sort(([left], [right]) => left.localeCompare(right))
+          .forEach(([documentUrn, fragments]) => {
+            const groupItem = document.createElement("li");
+            const documentLink = document.createElement("a");
+            documentLink.href =
+              `https://www.lexml.gov.br/urn/${documentUrn}`;
+            documentLink.target = "_blank";
+            documentLink.rel = "noopener noreferrer";
+            const documentCode = document.createElement("code");
+            documentCode.textContent = documentUrn;
+            documentLink.append(documentCode);
+            groupItem.append(documentLink);
+
+            const metadataStatus = document.createElement("p");
+            metadataStatus.className = "urn-metadata-status";
+            metadataStatus.textContent = "Loading metadata…";
+            groupItem.append(metadataStatus);
+            void loadMetadata(
+              documentUrn,
+              metadataStatus,
+              listRevision,
+            );
+
+            if (fragments.size > 0) {
+              const fragmentList = document.createElement("ul");
+              [...fragments]
+                .sort((left, right) => left.localeCompare(right))
+                .forEach((fragment) => {
+                  const fragmentItem = document.createElement("li");
+                  const fragmentCode = document.createElement("code");
+                  fragmentCode.textContent = fragment;
+                  fragmentItem.append(fragmentCode);
+                  fragmentList.append(fragmentItem);
+                });
+              groupItem.append(fragmentList);
+            }
+
+            urnList.append(groupItem);
+          });
+      }
+
+      function scheduleEnrichment() {
+        const scheduledRevision = ++revision;
+        clearTimeout(debounceTimer);
+        setStatus("Waiting for editing to pause…");
+        debounceTimer = setTimeout(
+          () => enrichDocument(scheduledRevision),
+          500,
+        );
+      }
+
+      async function enrichDocument(scheduledRevision) {
+        const source = document.createElement("template");
+        source.innerHTML = quill.getSemanticHTML();
+        source.content.querySelectorAll("a").forEach((anchor) => {
+          if (
+            anchor.classList.contains("lexmlurnlink") ||
+            anchor.href.includes("/urn/urn:lex:")
+          ) {
+            anchor.replaceWith(...anchor.childNodes);
+          }
+        });
+
+        // Quill uses non-breaking spaces to preserve visual whitespace. The
+        // LexML lexer expects ordinary spaces between words.
+        const sourceHtml = source.innerHTML
+          .replaceAll("&nbsp;", " ")
+          .replaceAll("\u00a0", " ");
+        const selection = quill.getSelection();
+        setStatus("Linking references…", "working");
+
+        try {
+          const responseJson = await wasmExports.lexml_link(
+            JSON.stringify({
+              input: sourceHtml,
+              inputType: "hxml",
+              outputType: "html",
+              context: "federal",
+              resolverUrl: "https://www.lexml.gov.br/urn/URNLEXML",
+            }),
+          );
+
+          // Ignore an older result if the user edited while it was running.
+          if (scheduledRevision !== revision) {
+            return;
+          }
+
+          const response = JSON.parse(responseJson);
+          if (!response.ok) {
+            throw new Error(response.error);
+          }
+
+          // "api" prevents this replacement from scheduling another run.
+          quill.clipboard.dangerouslyPasteHTML(response.content, "api");
+          renderUrns(response.content);
+          if (selection) {
+            const lastIndex = Math.max(0, quill.getLength() - 1);
+            quill.setSelection(
+              Math.min(selection.index, lastIndex),
+              selection.length,
+              "silent",
+            );
+          }
+
+          setStatus(
+            response.partial ? "Partially linked" : "References linked",
+          );
+        } catch (error) {
+          if (scheduledRevision === revision) {
+            setStatus(`Linking failed: ${String(error)}`, "error");
+          }
+        }
+      }
+
+      quill.on("text-change", (_delta, _oldDelta, source) => {
+        if (source === "user") {
+          scheduleEnrichment();
+        }
+      });
+
+      try {
+        const wasi = new WASI(
+          [],
+          [],
+          [
+            new OpenFile(new File(new Uint8Array(), { readonly: true })),
+            ConsoleStdout.lineBuffered((message) => console.log(message)),
+            ConsoleStdout.lineBuffered((message) => console.error(message)),
+            new PreopenDirectory("/", [["tmp", new Directory([])]]),
+          ],
+          { debug: false },
+        );
+
+        const exportsForJsffi = {};
+        const { instance } = await WebAssembly.instantiateStreaming(
+          fetch("./lexml-linker.wasm"),
+          {
+            ghc_wasm_jsffi: makeJsffiImports(exportsForJsffi),
+            wasi_snapshot_preview1: wasi.wasiImport,
+          },
+        );
+
+        Object.assign(exportsForJsffi, instance.exports);
+        wasi.initialize(instance);
+        wasmExports = exportsForJsffi;
+
+        quill.enable();
+        setStatus("Ready");
+        scheduleEnrichment();
+      } catch (error) {
+        setStatus(`Failed to load linker: ${String(error)}`, "error");
+      }
+    </script>
+  </body>
+</html>

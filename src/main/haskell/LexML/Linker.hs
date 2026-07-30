@@ -15,32 +15,27 @@ module LexML.Linker (
  ) where
 
 import Text.HTML.TagSoup 
-import Control.Monad.Identity
-import Control.Monad.Except
-import LexML.Linker.LexerPrim (Token, LexError)
+import Control.Monad.Except hiding (mapError)
+import LexML.Linker.LexerPrim (LexError)
 import LexML.Render (render)
-import LexML.URN.Show
 import LexML.URN.Utils (urnHasContextoFederal)
 import LexML.Linker.Lexer (tokenStream)
-import LexML.Linker.Decorator (DecorationMap, decorate, makeTagsAHRef, makeTagsXLink)
+import LexML.Linker.Decorator (decorate, makeTagsAHRef, makeTagsXLink)
 import LexML.Linker.Parser (LinkerParseError, parseReferencias2)
 import LexML.Linker.ParserBase (LinkerComponent (..))
 import LexML.Linker.HtmlCleaner (cleanEmptyAnchors)
-import System.IO
-import Control.Monad
-import Control.Monad.Except
 import Data.Typeable
 import Data.Map ( (!) )
 import qualified Data.Map as M
 import LexML.URN.Types
 import LexML.Linker.URLTransform (rewriteAnchors)
-import Prelude hiding (log)
-import System.Log.Logger
-import qualified Data.Map as M
 import qualified Data.Set as S
 
-linkerLog msg = liftIO $ debugM "LexML.Linker" msg
-linkerNotice msg = liftIO $ noticeM "LexML.Linker" msg
+linkerLog :: Monad m => String -> m ()
+linkerLog _ = pure ()
+
+linkerNotice :: Monad m => String -> m ()
+linkerNotice _ = pure ()
 
 data LinkerError = LE_Lexer LexError | LE_Parser LinkerParseError | LE_Other String deriving (Show,Typeable)
 
